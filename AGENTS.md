@@ -6,7 +6,7 @@ Instructions for agents creating or editing resumes in this repository.
 
 - Resume content lives in `resumes/*.yml`.
 - The schema lives in `.github/resume.schema.json`.
-- The builder lives in `.github/resume_ci.py`.
+- The CLI builder lives in `lib/resume-ci`.
 - The LaTeX layout lives in `template.tex`.
 - Keep resume YAML files compatible with the schema and examples.
 
@@ -19,7 +19,7 @@ When adding a new resume YAML file, include this first line:
 ## YAML Rules
 
 - Use the existing shape from `resumes/*.example.yml`.
-- Keep keys stable: `personal`, `font`, `section_titles`, `experience`, `projects`, `education`, `skills`, `output_filename`.
+- Keep keys stable: `personal`, `summary`, `font`, `section_titles`, `experience`, `projects`, `certifications`, `education`, `skills`, `output_filename`.
 - Use `projects: []` when the project section should be hidden.
 - Use only letters, digits, `_`, and `-` in `output_filename`.
 - Do not add unsupported fields unless the schema and builder are updated together.
@@ -102,7 +102,13 @@ Prefer:
 Useful validation command:
 
 ```bash
-python3 .github/resume_ci.py --tex-only
+lib/resume-ci --tex-only
+```
+
+Preview while editing:
+
+```bash
+lib/resume-ci --watch resumes/my-resume.yml
 ```
 
 ## Section Guidance

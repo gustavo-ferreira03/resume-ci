@@ -1,0 +1,48 @@
+#!/usr/bin/env sh
+set -eu
+
+python_bin="${PYTHON:-python3}"
+install_dir="${INSTALL_DIR:-$HOME/.local/bin}"
+tectonic_url="https://drop-sh.fullyjustified.net"
+script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+
+printf 'Installing Python dependencies...\n'
+"$python_bin" -m pip install -r "$script_dir/requirements.txt"
+
+if [ "${SKIP_TECTONIC:-}" = "1" ]; then
+  printf 'Skipping Tectonic install because SKIP_TECTONIC=1.\n'
+  exit 0
+fi
+
+if command -v tectonic >/dev/null 2>&1; then
+  printf 'Tectonic already installed: %s\n' "$(command -v tectonic)"
+  exit 0
+fi
+
+if ! command -v curl >/dev/null 2>&1; then
+  printf 'curl is required to install Tectonic. Install curl and rerun lib/setup.\n' >&2
+  exit 1
+fi
+
+tmp_dir="$(mktemp -d)"
+cleanup() {
+  rm -rf "$tmp_dir"
+}
+trap cleanup EXIT INT TERM
+
+printf 'Installing Tectonic into %s...\n' "$install_dir"
+mkdir -p "$install_dir"
+cd "$tmp_dir"
+curl --proto '=https' --tlsv1.2 -fsSL "$tectonic_url" | sh
+mv tectonic "$install_dir/tectonic"
+chmod +x "$install_dir/tectonic"
+
+if [ -n "${GITHUB_PATH:-}" ]; then
+  printf '%s\n' "$install_dir" >> "$GITHUB_PATH"
+fi
+
+printf 'Installed Tectonic at %s/tectonic\n' "$install_dir"
+case ":$PATH:" in
+  *":$install_dir:") ;;
+  *) printf 'Add this to your shell PATH if needed: export PATH="%s:$PATH"\n' "$install_dir" ;;
+esac

@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=../.github/resume.schema.json
+
+personal:
+  name: Layane Mirelly de Oliveira Lima
+  title: Recrutamento e Seleção | People Operations
+  email: mlayane012@gmail.com
+  phone: "(11) 96161-0629"
+  location: São Paulo, SP
+
+summary: Estudante do 4º ano de Psicologia pela PUC-SP, com conclusão prevista para dezembro de 2027. Experiência em Recrutamento e Seleção de âmbito nacional, People Operations, gestão de pipeline e análise de dados em Excel. Atualmente desenvolvo consultoria acadêmica em Diversidade e Inclusão para o Grupo Pão de Açúcar, com foco em turnover, onboarding e integração de talentos diversos.
+
+font: roboto
+
+section_titles:
+  summary: Resumo
+  experience: Experiência Profissional
+  projects: Projetos e Consultoria Acadêmica
+  education: Formação Acadêmica
+  skills: Competências
+  certifications: Certificações
+
+experience:
+  - company: POSHER Workplace Wellness
+    period:
+      from: Fev 2026
+      to: Atual
+    role: Estagiária de Recrutamento e Seleção
+    bullets:
+      - Conduzi **hunting e prospecção nacional de talentos**, organizando **pipeline e leads em planilhas avançadas** para manter visibilidade sobre o andamento das vagas.
+      - Realizei **triagens e entrevistas iniciais** para avaliar aderência técnica e cultural antes do avanço dos candidatos no processo seletivo.
+      - Atualizei **controles documentais e sistemas internos**, reduzindo risco de inconsistências nas informações de candidatos e etapas do processo.
+      - Participei de alinhamentos com liderança para acompanhar **KPIs, prioridades e evolução das vagas em aberto**.
+
+  - company: POSHER Workplace Wellness
+    period:
+      from: Jul 2025
+      to: Fev 2026
+    role: Estagiária de Relacionamento com Clientes e Profissionais
+    bullets:
+      - Atuei como **interface entre empresas parceiras e profissionais**, organizando demandas operacionais e mantendo alinhamento sobre prazos e informações.
+      - Mantive **bases extensas em planilhas**, consolidando dados necessários para acompanhamento das demandas e cumprimento de prazos.
+
+projects:
+  - company: Grupo Pão de Açúcar (GPA)
+    role: Projeto Acadêmico de Consultoria em Diversidade e Inclusão
+    bullets:
+      - Elaborei **formulários para diagnosticar causas de turnover**, convertendo respostas em **dados estatísticos** para orientar proposta de retenção.
+      - Estruturei proposta de **onboarding para refugiados e imigrantes**, conectando integração inicial, permanência e acompanhamento de talentos diversos.
+
+certifications:
+  - Cultura Organizacional (FGV)
+  - Gestão de Pessoas (SEBRAE)
+  - Entrevista por Competências (Sólides)
+  - Análise de Dados (Microsoft)
+
+education:
+  - institution: Pontifícia Universidade Católica de São Paulo (PUC-SP)
+    degree: Bacharelado em Psicologia
+    location: São Paulo, SP
+    period:
+      from: Jun 2022
+      to: Dez 2027
+
+skills:
+  - label: Idiomas
+    items: Inglês avançado
+  - label: Ferramentas
+    items: Excel avançado, Power BI
+  - label: People Operations
+    items: Recrutamento e Seleção, hunting, triagem de candidatos, entrevistas iniciais, controle documental, análise de KPIs
+  - label: Dados e Processos
+    items: Análise de dados, bases em planilhas, gestão de pipeline, formulários de diagnóstico, acompanhamento de prazos
+
+output_filename: curriculo_layane_mirelly

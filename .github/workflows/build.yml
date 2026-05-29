@@ -6,7 +6,8 @@ on:
     paths:
       - "resumes/*.yml"
       - "template.tex"
-      - ".github/resume_ci.py"
+      - "lib/**"
+      - ".github/resume.schema.json"
       - ".github/workflows/build.yml"
   workflow_dispatch:
 
@@ -19,19 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Python dependencies
-        run: pip install pyyaml
+      - name: Setup build tools
+        run: lib/setup
 
-      - name: Generate LaTeX files
-        run: python3 .github/resume_ci.py --tex-only
-
-      - name: Compile PDFs
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: "*.tex"
-          working_directory: build
-          compiler: pdflatex
-          args: "-interaction=nonstopmode -halt-on-error"
+      - name: Build PDFs
+        run: lib/resume-ci
 
       - name: Publish PDFs
         env:

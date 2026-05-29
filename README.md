@@ -1,10 +1,10 @@
 # resume-ci
 
-Build PDF resumes from YAML. Write your resume once, push to GitHub, and download the PDF from Releases.
+Build PDF resumes from YAML. Write once, push to GitHub, download from Releases.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-`resume-ci` is for people who want a clean LaTeX resume without having to install complex dependencies. Your content lives in `resumes/*.yml`. The design lives in `template.tex`. GitHub Actions does the build.
+You write your content in `resumes/*.yml`. The design lives in `template.tex`. GitHub Actions builds the PDFs automatically.
 
 ## What You Get
 
@@ -16,15 +16,15 @@ Build PDF resumes from YAML. Write your resume once, push to GitHub, and downloa
 
 ## Quick Start
 
-For a public repo, [fork this repository](../../fork).
+Public repo: [fork this repository](../../fork).
 
-For a private repo, create an empty private repository on GitHub, then run:
+Private repo: create an empty private repository on GitHub, then run:
 
 ```bash
 git clone https://github.com/gustavo-ferreira03/resume-ci.git
 cd resume-ci
 git remote rename origin upstream
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_PRIVATE_REPO.git
+git remote add origin <PRIVATE_REPO_URL>
 git push -u origin main
 ```
 
@@ -34,18 +34,18 @@ Then add your resume:
 cp resumes/resume-en.example.yml resumes/resume-en.yml
 ```
 
-Edit `resumes/resume-en.yml`, push to `main`, and download the PDF from the Releases tab.
+Edit `resumes/resume-en.yml`, push to `main`, and grab the PDF from the Releases tab.
 
 ## Pulling Updates
 
-When this template changes, pull the latest version into your repo:
+When this template changes:
 
 ```bash
 git fetch upstream
 git merge upstream/main
 ```
 
-Your own resume files should not conflict with upstream changes unless you edit the same example files or template files.
+Your own resume files shouldn't conflict with upstream unless you edit the same example or template files.
 
 ## How It Works
 
@@ -53,18 +53,18 @@ Your own resume files should not conflict with upstream changes unless you edit 
 resumes/*.yml + template.tex
         |
         v
-.github/resume_ci.py  validates YAML and writes build/*.tex
+lib/resume-ci  validates YAML and writes build/*.tex
         |
         v
-xu-cheng/latex-action  compiles build/*.tex to PDF
+Tectonic       compiles build/*.tex to PDF
         |
         v
 GitHub Releases        publishes each PDF as a downloadable asset
 ```
 
-The workflow validates each resume file, renders a `.tex` file into `build/`, and compiles it inside a TeX Live Docker image.
+The workflow validates each resume file, renders a `.tex` file into `build/`, and compiles it with Tectonic.
 
-You do not need a local TeX install. You do not need `apt-get install texlive` in the workflow.
+You do not need TeX Live. `lib/setup` installs Tectonic when it is missing, and Tectonic fetches missing TeX packages automatically.
 
 ## Repository Structure
 
@@ -74,9 +74,12 @@ resumes/
   resume-es.example.yml       Spanish example
   resume-ptbr.example.yml     Portuguese (BR) example
 template.tex                  LaTeX layout
+lib/
+  resume-ci                   YAML to TEX/PDF builder
+  setup                       Local/CI setup script
+  requirements.txt            Python dependencies
 .github/
   workflows/build.yml         GitHub Actions workflow
-  resume_ci.py                YAML to TEX builder
 ```
 
 ## Multiple Resumes
@@ -97,11 +100,13 @@ Start with one of the example files in [`resumes/`](resumes/). These are the mai
 
 | Field | What it controls |
 |---|---|
-| `personal` | Name, title, email, LinkedIn URL, and GitHub URL |
-| `font` | One of `lmodern`, `charter`, `cormorant`, `fira-sans`, or `source-sans` |
+| `personal` | Name, title, email, phone, location, LinkedIn URL, and GitHub URL |
+| `summary` | Optional short profile summary |
+| `font` | Font preset; defaults to `lmodern` |
 | `section_titles` | Section labels, useful for non-English resumes |
 | `experience` | Roles with company, period, URL, and bullets |
 | `projects` | Same shape as `experience`; set it to `[]` to hide the section |
+| `certifications` | Optional list of certifications |
 | `education` | Institution, degree, location, and period |
 | `skills` | List of `label` and `items` pairs |
 | `output_filename` | PDF file name without the `.pdf` extension |
@@ -125,11 +130,17 @@ The template uses simple `{{placeholder}}` tags. There is no template framework 
 
 ## Running Locally
 
-Local builds need Python 3.10+ and a LaTeX distribution with `pdflatex`, such as TeX Live or MiKTeX.
+Local builds need Python 3.10+. The setup script installs Python dependencies and Tectonic if missing.
 
 ```bash
-pip install pyyaml
-python3 .github/resume_ci.py
+lib/setup
+lib/resume-ci
+```
+
+Use `--watch` to rebuild automatically when you edit the YAML or template:
+
+```bash
+lib/resume-ci --watch resumes/your-resume.yml
 ```
 
 Generated PDFs are written to `build/`.

@@ -12,8 +12,10 @@
   \fi%
 }
 
-\input{glyphtounicode}
-\pdfgentounicode=1
+\ifdefined\pdfglyphtounicode
+  \input{glyphtounicode}
+  \pdfgentounicode=1
+\fi
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -26,7 +28,7 @@
 \usepackage{fancyhdr}
 \usepackage[hidelinks]{hyperref}
 \usepackage{tabularx}
-\usepackage{fontawesome5}
+\usepackage{fontawesome}
 \urlstyle{same}
 
 \definecolor{primary}{HTML}{000000}

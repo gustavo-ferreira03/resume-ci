@@ -4,26 +4,36 @@ from __future__ import annotations
 
 import argparse
 import re
+import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 from urllib.parse import urlparse
 
 try:
     import yaml
 except ImportError:
-    print("Missing dependency: pip install pyyaml", file=sys.stderr)
+    print("Missing dependency: PyYAML. Run lib/setup", file=sys.stderr)
     sys.exit(1)
 
 
 DATA_DIR = Path.cwd() / "resumes"
 BUILD_DIR = Path.cwd() / "build"
+TECTONIC_INSTALL_URL = "https://tectonic-typesetting.github.io/en-US/install.html"
 FONTS = {
+    "aptos": r"\usepackage[default]{sourcesanspro}",
+    "calibri": r"\usepackage[sfdefault]{carlito}",
+    "cambria": r"\usepackage{caladea}",
+    "candara": r"\usepackage[sfdefault]{cantarell}",
     "lmodern": r"\usepackage{lmodern}",
     "charter": r"\usepackage{charter}",
     "cormorant": r"\usepackage{CormorantGaramond}",
     "fira-sans": r"\usepackage[sfdefault]{FiraSans}",
+    "garamond": r"\usepackage{ebgaramond}",
+    "helvetica": r"\usepackage[scale=0.95]{tgheros}\renewcommand{\familydefault}{\sfdefault}",
     "libertine": r"\usepackage{libertine}",
+    "montserrat": r"\usepackage[defaultfam]{montserrat}",
     "palatino": r"\usepackage{newpxtext}\usepackage{newpxmath}",
     "plex-sans": r"\usepackage[sfdefault]{plex-sans}",
     "roboto": r"\usepackage[sfdefault]{roboto}",
@@ -62,6 +72,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=BUILD_DIR)
     parser.add_argument("--keep-aux", action="store_true")
     parser.add_argument("--tex-only", action="store_true")
+    parser.add_argument("--watch", action="store_true", help="Watch YAML/template for changes and rebuild")
     return parser.parse_args()
 
 
@@ -148,7 +159,7 @@ def contact(personal: dict) -> str:
     if location := text(personal, "location", "personal", ""):
         parts.append(latex(location))
     if linkedin := text(personal, "linkedin_url", "personal", ""):
-        parts.append(rf"\contactlink{{{linkedin}}}{{\faLinkedin}}{{{latex(username(linkedin))}}}")
+        parts.append(rf"\contactlink{{{linkedin}}}{{\faLinkedinSquare}}{{{latex(username(linkedin))}}}")
     if github := text(personal, "github_url", "personal", ""):
         parts.append(rf"\contactlink{{{github}}}{{\faGithub}}{{{latex(username(github))}}}")
     return r" $|$ ".join(parts)
@@ -256,6 +267,21 @@ def render(template: str, context: dict) -> str:
     return re.sub(r"\{\{([^#/?{][^}]*)\}\}", lambda m: str(nested(context, m.group(1)) or ""), template)
 
 
+def compile_pdf(tex_path: Path, pdf_path: Path, output_dir: Path, keep_aux: bool) -> None:
+    if shutil.which("tectonic") is None:
+        raise RuntimeError(f"tectonic not found in PATH. Run lib/setup or install Tectonic: {TECTONIC_INSTALL_URL}")
+
+    command = ["tectonic", "--outdir", str(output_dir)]
+    if keep_aux:
+        command += ["--keep-logs", "--keep-intermediates"]
+    command.append(str(tex_path))
+
+    if subprocess.run(command).returncode != 0:
+        raise RuntimeError(f"tectonic failed for {tex_path}")
+    if not pdf_path.exists():
+        raise RuntimeError(f"PDF not generated: {pdf_path}")
+
+
 def build_resume(data_path: Path, template: str, output_dir: Path, keep_aux: bool, tex_only: bool) -> Path:
     context = build_context(yaml.safe_load(data_path.read_text()), data_path)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -267,16 +293,38 @@ def build_resume(data_path: Path, template: str, output_dir: Path, keep_aux: boo
         return tex_path
 
     pdf_path = output_dir / f"{output_name}.pdf"
-    result = subprocess.run(["pdflatex", "-interaction=nonstopmode", "-output-directory", str(output_dir), str(tex_path)])
-    if result.returncode != 0:
-        raise RuntimeError(f"pdflatex failed for {data_path}")
-    if not pdf_path.exists():
-        raise RuntimeError(f"PDF not generated: {pdf_path}")
+    compile_pdf(tex_path, pdf_path, output_dir, keep_aux)
 
     if not keep_aux:
         for ext in ("aux", "log", "out", "tex"):
             (output_dir / f"{output_name}.{ext}").unlink(missing_ok=True)
     return pdf_path
+
+
+def mtimes(paths: list[Path]) -> dict[Path, float]:
+    return {p: p.stat().st_mtime for p in paths if p.exists()}
+
+
+def watch(paths: list[Path], template: Path, output_dir: Path, keep_aux: bool, tex_only: bool, template_text: str) -> None:
+    last_yaml = mtimes(paths)
+    last_template = template.stat().st_mtime
+    while True:
+        time.sleep(1)
+        current_yaml = mtimes(paths)
+        current_template = template.stat().st_mtime
+        if current_yaml == last_yaml and current_template == last_template:
+            continue
+        template_changed = current_template != last_template
+        for path in paths:
+            if not template_changed and last_yaml.get(path) == current_yaml.get(path):
+                continue
+            try:
+                output = build_resume(path, template_text, output_dir, keep_aux, tex_only)
+                print(f"{'TEX' if tex_only else 'PDF'}: {output}")
+            except Exception as exc:
+                print(f"FAILED {path}: {exc}", file=sys.stderr)
+        last_yaml = current_yaml
+        last_template = current_template
 
 
 def main() -> None:
@@ -285,11 +333,27 @@ def main() -> None:
         print(f"Template not found: {args.template}", file=sys.stderr)
         sys.exit(1)
 
-    failed = False
-    template = args.template.read_text()
-    for path in data_paths(args.data_paths):
+    paths = data_paths(args.data_paths)
+    template_text = args.template.read_text()
+
+    if args.watch:
+        print("Watching for changes. Press Ctrl+C to stop.")
+        for path in paths:
+            try:
+                output = build_resume(path, template_text, args.output_dir, args.keep_aux, args.tex_only)
+                print(f"{'TEX' if args.tex_only else 'PDF'}: {output}")
+            except Exception as exc:
+                print(f"FAILED {path}: {exc}", file=sys.stderr)
         try:
-            output = build_resume(path, template, args.output_dir, args.keep_aux, args.tex_only)
+            watch(paths, args.template, args.output_dir, args.keep_aux, args.tex_only, template_text)
+        except KeyboardInterrupt:
+            print("\nStopped watching.")
+            sys.exit(0)
+
+    failed = False
+    for path in paths:
+        try:
+            output = build_resume(path, template_text, args.output_dir, args.keep_aux, args.tex_only)
             print(f"{'TEX' if args.tex_only else 'PDF'}: {output}")
         except Exception as exc:
             print(f"FAILED {path}: {exc}", file=sys.stderr)
