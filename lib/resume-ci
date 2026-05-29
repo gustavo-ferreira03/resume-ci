@@ -134,7 +134,7 @@ def contact(personal: dict) -> str:
     if location := get(personal, "location", "personal", ""):
         parts.append(latex(location))
     if linkedin := get(personal, "linkedin_url", "personal", ""):
-        parts.append(rf"\contactlink{{{linkedin}}}{{\faLinkedin}}{{{latex(username(linkedin))}}}")
+        parts.append(rf"\contactlink{{{linkedin}}}{{\faLinkedinSquare}}{{{latex(username(linkedin))}}}")
     if github := get(personal, "github_url", "personal", ""):
         parts.append(rf"\contactlink{{{github}}}{{\faGithub}}{{{latex(username(github))}}}")
     return r" $|$ ".join(parts)
