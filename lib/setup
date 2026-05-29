@@ -1,15 +1,15 @@
 #!/usr/bin/env sh
 set -eu
 
-script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+python3 -m pip install -r lib/requirements.txt
 
-python3 -m pip install -r "$script_dir/requirements.txt"
-
-if command -v tectonic >/dev/null 2>&1; then
+if [ -f bin/tectonic ]; then
   exit 0
 fi
 
-cd "$(mktemp -d)"
+mkdir -p bin
+tmp="$(mktemp -d)"
+cd "$tmp"
 curl -fsSL https://drop-sh.fullyjustified.net | sh
-mv tectonic ~/.local/bin/tectonic
-chmod +x ~/.local/bin/tectonic
+mv tectonic "$OLDPWD/bin/tectonic"
+chmod +x "$OLDPWD/bin/tectonic"
