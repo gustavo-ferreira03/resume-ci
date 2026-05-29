@@ -6,7 +6,7 @@ Instructions for agents creating or editing resumes in this repository.
 
 - Resume content lives in `resumes/*.yml`.
 - The schema lives in `lib/resume.schema.json`.
-- The CLI builder lives in `lib/resume-ci`.
+- The CLI builder lives in `lib/resume-ci.py`.
 - The LaTeX layout lives in `template.tex`.
 - Keep resume YAML files compatible with the schema and examples.
 
@@ -102,13 +102,13 @@ Prefer:
 Useful validation command:
 
 ```bash
-lib/resume-ci --tex-only
+lib/resume-ci.py --tex-only
 ```
 
 Preview while editing:
 
 ```bash
-lib/resume-ci --watch resumes/my-resume.yml
+lib/resume-ci.py --watch resumes/my-resume.yml
 ```
 
 ## Section Guidance

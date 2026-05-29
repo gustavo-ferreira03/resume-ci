@@ -53,7 +53,7 @@ Your own resume files shouldn't conflict with upstream unless you edit the same 
 resumes/*.yml + template.tex
         |
         v
-lib/resume-ci  validates YAML and writes build/*.tex
+lib/resume-ci.py  validates YAML and writes build/*.tex
         |
         v
 Tectonic       compiles build/*.tex to PDF
@@ -64,7 +64,7 @@ GitHub Releases        publishes each PDF as a downloadable asset
 
 The workflow validates each resume file, renders a `.tex` file into `build/`, and compiles it with Tectonic.
 
-You do not need TeX Live. `lib/setup` installs Tectonic when it is missing, and Tectonic fetches missing TeX packages automatically.
+You do not need TeX Live. `lib/setup.sh` installs Tectonic when it is missing, and Tectonic fetches missing TeX packages automatically.
 
 ## Repository Structure
 
@@ -75,8 +75,8 @@ resumes/
   resume-ptbr.example.yml     Portuguese (BR) example
 template.tex                  LaTeX layout
 lib/
-  resume-ci                   YAML to TEX/PDF builder
-  setup                       Local/CI setup script
+  resume-ci.py                YAML to TEX/PDF builder
+  setup.sh                      Local/CI setup script
   requirements.txt            Python dependencies
 .github/
   workflows/build.yml         GitHub Actions workflow
@@ -133,14 +133,14 @@ The template uses simple `{{placeholder}}` tags. There is no template framework 
 Local builds need Python 3.10+. The setup script installs Python dependencies and Tectonic if missing.
 
 ```bash
-lib/setup
-lib/resume-ci
+lib/setup.sh
+lib/resume-ci.py
 ```
 
 Use `--watch` to rebuild automatically when you edit the YAML or template:
 
 ```bash
-lib/resume-ci --watch resumes/your-resume.yml
+lib/resume-ci.py --watch resumes/your-resume.yml
 ```
 
 Generated PDFs are written to `build/`.

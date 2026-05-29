@@ -263,7 +263,7 @@ def find_tectonic() -> str:
     system = shutil.which("tectonic")
     if system:
         return system
-    raise RuntimeError("tectonic not found. Run lib/setup")
+    raise RuntimeError("tectonic not found. Run lib/setup.sh")
 
 
 def compile_pdf(tex_path: Path, pdf_path: Path, output_dir: Path, keep_aux: bool) -> None:
