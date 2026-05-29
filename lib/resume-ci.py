@@ -257,13 +257,15 @@ def render(template: str, context: dict) -> str:
 
 
 def find_tectonic() -> str:
-    local = Path(__file__).resolve().parent.parent / ".bin" / "tectonic"
-    if local.exists():
-        return str(local)
+    root = Path(__file__).resolve().parent.parent
+    for name in ("tectonic", "tectonic.exe"):
+        local = root / "bin" / name
+        if local.exists():
+            return str(local)
     system = shutil.which("tectonic")
     if system:
         return system
-    raise RuntimeError("tectonic not found. Run lib/setup.sh")
+    raise RuntimeError("tectonic not found. Run lib/setup.sh (Linux/macOS) or lib/setup.ps1 (Windows)")
 
 
 def compile_pdf(tex_path: Path, pdf_path: Path, output_dir: Path, keep_aux: bool) -> None:

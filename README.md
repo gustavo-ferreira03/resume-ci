@@ -64,7 +64,7 @@ GitHub Releases        publishes each PDF as a downloadable asset
 
 The workflow validates each resume file, renders a `.tex` file into `build/`, and compiles it with Tectonic.
 
-You do not need TeX Live. `lib/setup.sh` installs Tectonic when it is missing, and Tectonic fetches missing TeX packages automatically.
+You do not need TeX Live. `lib/setup.sh` (Linux/macOS) or `lib/setup.ps1` (Windows) installs Tectonic when it is missing, and Tectonic fetches missing TeX packages automatically.
 
 ## Repository Structure
 
@@ -76,7 +76,8 @@ resumes/
 template.tex                  LaTeX layout
 lib/
   resume-ci.py                YAML to TEX/PDF builder
-  setup.sh                      Local/CI setup script
+  setup.sh                      Local/CI setup script (Linux/macOS)
+  setup.ps1                     Local setup script (Windows)
   requirements.txt            Python dependencies
 .github/
   workflows/build.yml         GitHub Actions workflow
@@ -133,7 +134,12 @@ The template uses simple `{{placeholder}}` tags. There is no template framework 
 Local builds need Python 3.10+. The setup script installs Python dependencies and Tectonic if missing.
 
 ```bash
+# Linux / macOS
 lib/setup.sh
+lib/resume-ci.py
+
+# Windows (PowerShell)
+lib/setup.ps1
 lib/resume-ci.py
 ```
 
