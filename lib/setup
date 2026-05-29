@@ -3,13 +3,14 @@ set -eu
 
 python3 -m pip install -r lib/requirements.txt
 
-if [ -f bin/tectonic ]; then
+root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+
+if [ -f "$root/.bin/tectonic" ]; then
   exit 0
 fi
 
-mkdir -p bin
+mkdir -p "$root/.bin"
 tmp="$(mktemp -d)"
-cd "$tmp"
-curl -fsSL https://drop-sh.fullyjustified.net | sh
-mv tectonic "$OLDPWD/bin/tectonic"
-chmod +x "$OLDPWD/bin/tectonic"
+(cd "$tmp" && curl -fsSL https://drop-sh.fullyjustified.net | sh)
+mv "$tmp/tectonic" "$root/.bin/tectonic"
+chmod +x "$root/.bin/tectonic"

@@ -257,7 +257,7 @@ def render(template: str, context: dict) -> str:
 
 
 def find_tectonic() -> str:
-    local = Path.cwd() / ".bin" / "tectonic"
+    local = Path(__file__).resolve().parent.parent / ".bin" / "tectonic"
     if local.exists():
         return str(local)
     system = shutil.which("tectonic")
