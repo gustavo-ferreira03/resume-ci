@@ -34,7 +34,7 @@ Then add your resume:
 cp resumes/resume-en.example.yml resumes/resume-en.yml
 ```
 
-Edit `resumes/resume-en.yml`, push to `main`, and grab the PDF from the Releases tab.
+Edit `resumes/resume-en.yml`, push to `main`, and grab the PDF from the latest release on the Releases tab.
 
 ## Pulling Updates
 
