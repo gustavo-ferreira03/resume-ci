@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../.github/resume.schema.json
+# yaml-language-server: $schema=../lib/resume.schema.json
 
 personal:
   name: Alex Morgan

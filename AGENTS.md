@@ -5,7 +5,7 @@ Instructions for agents creating or editing resumes in this repository.
 ## Project Context
 
 - Resume content lives in `resumes/*.yml`.
-- The schema lives in `.github/resume.schema.json`.
+- The schema lives in `lib/resume.schema.json`.
 - The CLI builder lives in `lib/resume-ci`.
 - The LaTeX layout lives in `template.tex`.
 - Keep resume YAML files compatible with the schema and examples.
@@ -13,7 +13,7 @@ Instructions for agents creating or editing resumes in this repository.
 When adding a new resume YAML file, include this first line:
 
 ```yaml
-# yaml-language-server: $schema=../.github/resume.schema.json
+# yaml-language-server: $schema=../lib/resume.schema.json
 ```
 
 ## YAML Rules
@@ -124,7 +124,7 @@ lib/resume-ci --watch resumes/my-resume.yml
 
 Before finishing a resume edit, verify:
 
-- YAML matches `.github/resume.schema.json`.
+- YAML matches `lib/resume.schema.json`.
 - Every major bullet can be traced to STAR.
 - No metric or claim was invented.
 - Bullets start with strong action verbs.

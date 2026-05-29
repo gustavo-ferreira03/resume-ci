@@ -7,7 +7,7 @@ on:
       - "resumes/*.yml"
       - "template.tex"
       - "lib/**"
-      - ".github/resume.schema.json"
+      - "lib/resume.schema.json"
       - ".github/workflows/build.yml"
   workflow_dispatch:
 
@@ -32,5 +32,5 @@ jobs:
         run: |
           tag="build-${{ github.run_number }}"
           gh release create "$tag" build/*.pdf \
-            --title "Resumes #$tag" \
+            --title "Resumes" \
             --notes "Built from [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})"

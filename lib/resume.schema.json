@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/gustavo-ferreira03/resume-ci/main/.github/resume.schema.json",
+  "$id": "https://raw.githubusercontent.com/gustavo-ferreira03/resume-ci/main/lib/resume.schema.json",
   "title": "resume-ci YAML Resume",
   "description": "Schema for resume YAML files in resumes/*.yml.",
   "type": "object",
