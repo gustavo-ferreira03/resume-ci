@@ -2,5 +2,4 @@ __pycache__/
 build/
 *.pdf
 .agents/
-.bin/tectonic
 bin/
