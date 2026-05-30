@@ -8,11 +8,11 @@ import { z } from "zod"
 import { resumeSchema, role, education, type Resume } from "./schema.ts"
 import { rich, periodStr, extractDomain, extractUsername } from "./utils.ts"
 
-const ROOT      = resolve(import.meta.dir, "../..")
-const DATA_DIR  = join(ROOT, "resumes")
-const BUILD_DIR = join(ROOT, "build")
-const FONT_DIR  = join(ROOT, "lib", "bin", "fonts")
-const TEMPLATE  = join(ROOT, "templates", "default.typ")
+const ROOT        = resolve(import.meta.dir, "../..")
+const DATA_DIR    = join(ROOT, "resumes")
+const BUILD_DIR   = join(ROOT, "build")
+const FONT_DIR    = join(ROOT, "lib", "bin", "fonts")
+const TEMPLATE_DIR = join(ROOT, "templates")
 
 
 const SECTION_TITLES = {
@@ -64,7 +64,8 @@ class Builder {
     private readonly paths: string[],
   ) {}
 
-  static create(templatePath: string, outputDir: string, explicit: string[] | null) {
+  static create(templateName: string, outputDir: string, explicit: string[] | null) {
+    const templatePath = join(TEMPLATE_DIR, templateName, "template.typ")
     try { statSync(templatePath) } catch {
       throw new Error(`Template not found: ${templatePath}`)
     }
@@ -142,7 +143,7 @@ class Builder {
 const { values, positionals } = parseArgs({
   args: Bun.argv.slice(2),
   options: {
-    template:     { type: "string",  default: TEMPLATE },
+    template:     { type: "string",  default: "default" },
     "output-dir": { type: "string",  default: BUILD_DIR },
     watch:        { type: "boolean", default: false },
   },
@@ -150,7 +151,7 @@ const { values, positionals } = parseArgs({
 })
 
 const builder = Builder.create(
-  resolve(values.template as string),
+  values.template as string,
   values["output-dir"] as string,
   positionals.length ? positionals.map(p => resolve(p)) : null,
 )
