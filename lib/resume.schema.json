@@ -52,27 +52,9 @@
     },
     "font": {
       "type": "string",
-      "description": "LaTeX font package preset. Defaults to lmodern when omitted.",
-      "default": "lmodern",
-      "enum": [
-        "aptos",
-        "calibri",
-        "cambria",
-        "candara",
-        "charter",
-        "cormorant",
-        "fira-sans",
-        "garamond",
-        "helvetica",
-        "libertine",
-        "lmodern",
-        "montserrat",
-        "palatino",
-        "plex-sans",
-        "roboto",
-        "source-sans",
-        "times"
-      ]
+      "description": "Typst font name. Defaults to New Computer Modern when omitted.",
+      "default": "New Computer Modern",
+      "minLength": 1
     },
     "section_titles": {
       "type": "object",
@@ -107,13 +89,14 @@
     },
     "experience": {
       "type": "array",
+      "description": "Set to [] to hide the section.",
       "items": {
         "$ref": "#/$defs/roleEntry"
       }
     },
     "projects": {
       "type": "array",
-      "description": "Same shape as experience. Omit it or set it to [] to hide the section.",
+      "description": "Same shape as experience. Omit or set to [] to hide the section.",
       "default": [],
       "items": {
         "$ref": "#/$defs/roleEntry"
@@ -121,19 +104,21 @@
     },
     "education": {
       "type": "array",
+      "description": "Set to [] to hide the section.",
       "items": {
         "$ref": "#/$defs/educationEntry"
       }
     },
     "skills": {
       "type": "array",
+      "description": "Set to [] to hide the section.",
       "items": {
         "$ref": "#/$defs/skillEntry"
       }
     },
     "certifications": {
       "type": "array",
-      "description": "Optional certification list. Omit it or set it to [] to hide the section.",
+      "description": "Optional certification list. Omit or set to [] to hide the section.",
       "default": [],
       "items": {
         "$ref": "#/$defs/nonEmptyString"

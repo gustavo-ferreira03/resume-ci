@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-from __future__ import annotations
-
 import argparse
+import json
 import re
 import shutil
 import subprocess
@@ -12,31 +11,15 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import yaml
+from jsonschema import Draft202012Validator, FormatChecker
 
-DATA_DIR = Path.cwd() / "resumes"
-BUILD_DIR = Path.cwd() / "build"
+ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = ROOT / "resumes"
+BUILD_DIR = ROOT / "build"
+TEMPLATE = ROOT / "templates" / "default.typ"
+FONT_DIR = ROOT / "bin" / "fonts"
 
-FONTS: dict[str, str] = {
-    "aptos": r"\usepackage[default]{sourcesanspro}",
-    "calibri": r"\usepackage[sfdefault]{carlito}",
-    "cambria": r"\usepackage{caladea}",
-    "candara": r"\usepackage[sfdefault]{cantarell}",
-    "lmodern": r"\usepackage{lmodern}",
-    "charter": r"\usepackage{charter}",
-    "cormorant": r"\usepackage{CormorantGaramond}",
-    "fira-sans": r"\usepackage[sfdefault]{FiraSans}",
-    "garamond": r"\usepackage{ebgaramond}",
-    "helvetica": r"\usepackage[scale=0.95]{tgheros}\renewcommand{\familydefault}{\sfdefault}",
-    "libertine": r"\usepackage{libertine}",
-    "montserrat": r"\usepackage[defaultfam]{montserrat}",
-    "palatino": r"\usepackage{newpxtext}\usepackage{newpxmath}",
-    "plex-sans": r"\usepackage[sfdefault]{plex-sans}",
-    "roboto": r"\usepackage[sfdefault]{roboto}",
-    "source-sans": r"\usepackage[default]{sourcesanspro}",
-    "times": r"\usepackage{newtxtext}\usepackage{newtxmath}",
-}
-
-SECTION_TITLES: dict[str, str] = {
+TITLES = {
     "summary": "Professional Summary",
     "experience": "Experience",
     "projects": "Projects",
@@ -45,318 +28,195 @@ SECTION_TITLES: dict[str, str] = {
     "skills": "Technical Skills",
 }
 
-ESCAPE = str.maketrans({
-    "&": r"\&", "%": r"\%", "$": r"\$", "#": r"\#", "_": r"\_",
-    "{": r"\{", "}": r"\}", "~": r"\textasciitilde{}",
-    "^": r"\textasciicircum{}", "\\": r"\textbackslash{}",
-})
-
 RICH_RE = re.compile(r"\*\*(.+?)\*\*|_(.+?)_")
-OUTPUT_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+SCHEMA = Draft202012Validator(
+    json.loads((ROOT / "lib" / "resume.schema.json").read_text()),
+    format_checker=FormatChecker(),
+)
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Build resume PDFs from YAML files.")
-    p.add_argument("data_paths", nargs="*", type=Path)
-    p.add_argument("--template", type=Path, default=Path.cwd() / "template.tex")
-    p.add_argument("--output-dir", type=Path, default=BUILD_DIR)
-    p.add_argument("--keep-aux", action="store_true")
-    p.add_argument("--tex-only", action="store_true")
-    p.add_argument("--watch", action="store_true")
-    return p.parse_args()
+def parse_args():
+    parser = argparse.ArgumentParser(description="Build resume PDFs from YAML files.")
+    parser.add_argument("resumes", nargs="*", type=Path)
+    parser.add_argument("--template", type=Path, default=TEMPLATE)
+    parser.add_argument("--output-dir", type=Path, default=BUILD_DIR)
+    parser.add_argument("--watch", action="store_true")
+    return parser.parse_args()
 
 
-def data_paths(explicit: list[Path]) -> list[Path]:
-    paths = explicit or sorted(DATA_DIR.glob("*.yml"))
-    if not paths:
+def paths(explicit):
+    found = explicit or sorted(DATA_DIR.glob("*.yml"))
+    if not found:
         print("No resume YAML files found.", file=sys.stderr)
         sys.exit(0)
-    return paths
+    return found
 
 
-def get(data: dict, key: str, path: str, default: str | None = None) -> str:
-    if key not in data:
-        if default is None:
-            raise ValueError(f"{path}.{key} must be a non-empty string")
-        return default
-    value = data[key]
-    if value is None and default is not None:
-        return default
-    if not isinstance(value, str):
-        raise ValueError(f"{path}.{key} must be a string")
-    value = value.strip()
-    if default is None and not value:
-        raise ValueError(f"{path}.{key} must be a non-empty string")
-    return value
+def load(path):
+    data = yaml.safe_load(path.read_text())
+    if not isinstance(data, dict):
+        raise ValueError(f"{path} must contain a YAML mapping")
+
+    errors = sorted(SCHEMA.iter_errors(data), key=lambda error: list(error.path))
+    if errors:
+        error = errors[0]
+        location = ".".join(str(part) for part in error.absolute_path) or "resume"
+        raise ValueError(f"{location}: {error.message}")
+    return data
 
 
-def period(data: dict, key: str, path: str) -> str:
-    value = data.get(key)
-    if value is None:
-        return ""
-    start = get(value, "from", f"{path}.{key}")
-    end = get(value, "to", f"{path}.{key}")
+def text(data, key, default=""):
+    return (data.get(key) or default).strip()
+
+
+def rich(value):
+    parts = []
+    pos = 0
+    for match in RICH_RE.finditer(value):
+        if match.start() > pos:
+            parts.append({"text": value[pos:match.start()], "style": ""})
+        parts.append({"text": match.group(1) or match.group(2), "style": "strong" if match.group(1) else "emph"})
+        pos = match.end()
+    if pos < len(value):
+        parts.append({"text": value[pos:], "style": ""})
+    return parts
+
+
+def period(item):
+    value = item.get("period") or {}
+    start = text(value, "from")
+    end = text(value, "to")
     return f"{start} -- {end}" if start and end else start or end
 
 
-def latex(value: str) -> str:
-    return value.translate(ESCAPE)
-
-
-def rich(value: str) -> str:
-    parts = []
-    pos = 0
-    for m in RICH_RE.finditer(value):
-        parts.append(latex(value[pos:m.start()]))
-        cmd = "textbf" if m.group(1) else "textit"
-        parts.append(rf"\{cmd}{{{latex(m.group(1) or m.group(2))}}}")
-        pos = m.end()
-    return "".join([*parts, latex(value[pos:])])
-
-
-def domain(url: str) -> str:
+def domain(url):
     host = urlparse(url).hostname or ""
     parts = host.split(".")
     keep = 3 if re.search(r"\.(com|org|net|gov|edu)\.[a-z]{2}$", host) else 2
     return ".".join(parts[-keep:]) if len(parts) > keep else host
 
 
-def username(url: str) -> str:
+def username(url):
     path = urlparse(url).path.strip("/")
     return path.split("/")[-1] if path else re.sub(r"^https?://", "", url)
 
 
-def contact(personal: dict) -> str:
-    email = get(personal, "email", "personal")
-    parts = [rf"\contactlink{{mailto:{email}}}{{\faEnvelope}}{{{latex(email)}}}"]
-    if phone := get(personal, "phone", "personal", ""):
-        parts.append(rf"\faPhone\ {latex(phone)}")
-    if location := get(personal, "location", "personal", ""):
-        parts.append(latex(location))
-    if linkedin := get(personal, "linkedin_url", "personal", ""):
-        parts.append(rf"\contactlink{{{linkedin}}}{{\faLinkedinSquare}}{{{latex(username(linkedin))}}}")
-    if github := get(personal, "github_url", "personal", ""):
-        parts.append(rf"\contactlink{{{github}}}{{\faGithub}}{{{latex(username(github))}}}")
-    return r" $|$ ".join(parts)
+def contacts(personal):
+    email = text(personal, "email")
+    items = [{"icon": "envelope", "solid": True, "href": f"mailto:{email}", "text": email}]
+    for key, icon, solid in (("phone", "phone", True), ("location", "", False)):
+        if value := text(personal, key):
+            items.append({"icon": icon, "solid": solid, "href": "", "text": value})
+    for key, icon in (("linkedin_url", "linkedin"), ("github_url", "github")):
+        if url := text(personal, key):
+            items.append({"icon": icon, "solid": False, "href": url, "text": username(url)})
+    return items
 
 
-def role(item: dict, path: str) -> dict:
-    url = get(item, "url", path, "")
-    bullets = item.get("bullets", [])
-    if not all(isinstance(b, str) for b in bullets):
-        raise ValueError(f"{path}.bullets must contain only strings")
+def role(item):
+    url = text(item, "url")
     return {
-        "company": rich(get(item, "company", path)),
-        "period": latex(period(item, "period", path)),
-        "role": rich(get(item, "role", path)),
+        "company": rich(text(item, "company")),
+        "period": period(item),
+        "role": rich(text(item, "role")),
         "url": url,
-        "no_url": not url,
-        "domain": latex(domain(url)) if url else "",
-        "bullets": [rich(b) for b in bullets],
+        "domain": domain(url) if url else "",
+        "bullets": [rich(bullet) for bullet in item.get("bullets", [])],
     }
 
 
-def education(item: dict, path: str) -> dict:
+def education(item):
     return {
-        "institution": rich(get(item, "institution", path)),
-        "period": latex(period(item, "period", path)),
-        "degree": rich(get(item, "degree", path)),
-        "location": rich(get(item, "location", path)),
+        "institution": rich(text(item, "institution")),
+        "period": period(item),
+        "degree": rich(text(item, "degree")),
+        "location": rich(text(item, "location")),
     }
 
 
-def skill(item: dict, path: str) -> dict:
-    return {"label": rich(get(item, "label", path)), "items": rich(get(item, "items", path))}
-
-
-def string_list(data: dict, key: str) -> list[str]:
-    items = data.get(key, [])
-    if not all(isinstance(item, str) and item.strip() for item in items):
-        raise ValueError(f"{key} must contain only non-empty strings")
-    return [rich(item) for item in items]
-
-
-def build_context(raw: object, data_path: Path) -> dict:
-    data = raw or {}
-    if not isinstance(data, dict):
-        raise ValueError(f"{data_path} must be a mapping")
-    personal = data.get("personal", {})
-    if not isinstance(personal, dict):
-        raise ValueError("personal must be a mapping")
-    font = get(data, "font", "resume", "lmodern")
-    output = get(data, "output_filename", "resume")
-    titles = {**SECTION_TITLES, **(data.get("section_titles") or {})}
-
-    if font not in FONTS:
-        raise ValueError(f"font must be one of: {', '.join(sorted(FONTS))}")
-    if not OUTPUT_RE.match(output):
-        raise ValueError("output_filename must only contain letters, digits, _ or -")
-    for key in SECTION_TITLES:
-        if not isinstance(titles.get(key), str) or not titles[key].strip():
-            raise ValueError(f"section_titles.{key} must be a non-empty string")
-
-    experience = data.get("experience", [])
-    if not isinstance(experience, list):
-        raise ValueError("experience must be a list")
-    projects = data.get("projects", [])
-    if not isinstance(projects, list):
-        raise ValueError("projects must be a list")
-    education_list = data.get("education", [])
-    if not isinstance(education_list, list):
-        raise ValueError("education must be a list")
-    skills_list = data.get("skills", [])
-    if not isinstance(skills_list, list):
-        raise ValueError("skills must be a list")
-
+def context(data):
+    personal = data["personal"]
     return {
-        "personal": {
-            "name": rich(get(personal, "name", "personal")),
-            "title": rich(get(personal, "title", "personal")),
-        },
-        "contact_line": contact(personal),
-        "summary": rich(get(data, "summary", "resume", "")),
-        "font_package": FONTS[font],
-        "section_titles": {key: latex(value) for key, value in titles.items()},
-        "experience": [role(item, f"experience[{i}]") for i, item in enumerate(experience)],
-        "projects": [role(item, f"projects[{i}]") for i, item in enumerate(projects)],
-        "certifications": string_list(data, "certifications"),
-        "education": [education(item, f"education[{i}]") for i, item in enumerate(education_list)],
-        "skills": [skill(item, f"skills[{i}]") for i, item in enumerate(skills_list)],
-        "output_filename": output,
+        "personal": {"name": rich(text(personal, "name")), "title": rich(text(personal, "title"))},
+        "contact": contacts(personal),
+        "summary": rich(text(data, "summary")),
+        "font": text(data, "font", "New Computer Modern"),
+        "section_titles": {**TITLES, **(data.get("section_titles") or {})},
+        "experience": [role(item) for item in data.get("experience", [])],
+        "projects": [role(item) for item in data.get("projects", [])],
+        "certifications": [rich(item) for item in data.get("certifications", [])],
+        "education": [education(item) for item in data.get("education", [])],
+        "skills": [{"label": rich(text(item, "label")), "items": rich(text(item, "items"))} for item in data.get("skills", [])],
+        "output_filename": data["output_filename"],
     }
 
 
-def nested(context: dict, key: str) -> object:
-    value = context
-    for part in key.strip().split("."):
-        if not isinstance(value, dict):
-            return None
-        value = value.get(part)
-    return value
+def typst():
+    for name in ("typst", "typst.exe"):
+        path = ROOT / "bin" / name
+        if path.exists():
+            return str(path)
+    if path := shutil.which("typst"):
+        return path
+    raise RuntimeError("typst not found. Run lib/setup.sh")
 
 
-def render(template: str, context: dict) -> str:
-    def loop(m: re.Match) -> str:
-        items = nested(context, m.group(1))
-        if not isinstance(items, list):
-            return ""
-        return "".join(
-            m.group(2).replace("{{.}}", item) if isinstance(item, str) else render(m.group(2), {**context, **item})
-            for item in items
-        )
-
-    def cond(m: re.Match) -> str:
-        value = nested(context, m.group(1))
-        truthy = len(value) > 0 if isinstance(value, (list, dict)) else bool(value)
-        return render(m.group(2), context) if truthy else ""
-
-    template = re.sub(r"\{\{#(\w+)\}\}([\s\S]*?)\{\{/\1\}\}", loop, template)
-    template = re.sub(r"\{\{\?(\w+)\}\}([\s\S]*?)\{\{\?/\1\}\}", cond, template)
-    template = re.sub(r"\{\{\{([^}]+)\}\}\}", lambda m: "{" + str(nested(context, m.group(1)) or "") + "}", template)
-    return re.sub(r"\{\{([^#/?{][^}]*)\}\}", lambda m: str(nested(context, m.group(1)) or ""), template)
+def root_path(path):
+    return path.resolve().relative_to(ROOT).as_posix()
 
 
-def find_tectonic() -> str:
-    root = Path(__file__).resolve().parent.parent
-    for name in ("tectonic", "tectonic.exe"):
-        local = root / "bin" / name
-        if local.exists():
-            return str(local)
-    system = shutil.which("tectonic")
-    if system:
-        return system
-    raise RuntimeError("tectonic not found. Run lib/setup.sh (Linux/macOS) or lib/setup.ps1 (Windows)")
-
-
-def compile_pdf(tex_path: Path, pdf_path: Path, output_dir: Path, keep_aux: bool) -> None:
-    cmd = [find_tectonic(), "--outdir", str(output_dir)]
-    if keep_aux:
-        cmd += ["--keep-logs", "--keep-intermediates"]
-    cmd.append(str(tex_path))
-
-    if subprocess.run(cmd).returncode != 0:
-        raise RuntimeError(f"tectonic failed for {tex_path}")
-    if not pdf_path.exists():
-        raise RuntimeError(f"PDF not generated: {pdf_path}")
-
-
-def build_resume(data_path: Path, template: str, output_dir: Path, keep_aux: bool, tex_only: bool) -> Path:
-    context = build_context(yaml.safe_load(data_path.read_text()), data_path)
+def build(path, template, output_dir):
+    data = context(load(path))
     output_dir.mkdir(parents=True, exist_ok=True)
-
-    name = context["output_filename"]
-    tex = output_dir / f"{name}.tex"
-    tex.write_text(render(template, context))
-    if tex_only:
-        return tex
-
-    pdf = output_dir / f"{name}.pdf"
-    compile_pdf(tex, pdf, output_dir, keep_aux)
-
-    if not keep_aux:
-        for ext in ("aux", "log", "out", "tex"):
-            (output_dir / f"{name}.{ext}").unlink(missing_ok=True)
+    pdf = output_dir / f"{data['output_filename']}.pdf"
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    subprocess.run([
+        typst(), "compile",
+        "--root", str(ROOT),
+        "--font-path", str(FONT_DIR),
+        "--input", f"data={payload}",
+        root_path(template), str(pdf),
+    ], check=True)
     return pdf
 
 
-def mtimes(paths: list[Path]) -> dict[Path, float]:
-    return {p: p.stat().st_mtime for p in paths if p.exists()}
-
-
-def watch(paths: list[Path], template: Path, output_dir: Path, keep_aux: bool, tex_only: bool, template_text: str) -> None:
-    last_yaml = mtimes(paths)
-    last_tpl = template.stat().st_mtime
-    while True:
-        time.sleep(1)
-        cur_yaml = mtimes(paths)
-        cur_tpl = template.stat().st_mtime
-        if cur_yaml == last_yaml and cur_tpl == last_tpl:
-            continue
-        tpl_changed = cur_tpl != last_tpl
-        for path in paths:
-            if not tpl_changed and last_yaml.get(path) == cur_yaml.get(path):
-                continue
-            try:
-                out = build_resume(path, template_text, output_dir, keep_aux, tex_only)
-                print(f"{'TEX' if tex_only else 'PDF'}: {out}")
-            except Exception as exc:
-                print(f"FAILED {path}: {exc}", file=sys.stderr)
-        last_yaml = cur_yaml
-        last_tpl = cur_tpl
-
-
-def main() -> None:
-    args = parse_args()
-    if not args.template.exists():
-        print(f"Template not found: {args.template}", file=sys.stderr)
-        sys.exit(1)
-
-    paths = data_paths(args.data_paths)
-    tpl = args.template.read_text()
-
-    if args.watch:
-        print("Watching for changes. Press Ctrl+C to stop.")
-        for path in paths:
-            try:
-                out = build_resume(path, tpl, args.output_dir, args.keep_aux, args.tex_only)
-                print(f"{'TEX' if args.tex_only else 'PDF'}: {out}")
-            except Exception as exc:
-                print(f"FAILED {path}: {exc}", file=sys.stderr)
-        try:
-            watch(paths, args.template, args.output_dir, args.keep_aux, args.tex_only, tpl)
-        except KeyboardInterrupt:
-            print("\nStopped watching.")
-            sys.exit(0)
-
+def build_all(resumes, template, output_dir):
     failed = False
-    for path in paths:
+    for path in resumes:
         try:
-            out = build_resume(path, tpl, args.output_dir, args.keep_aux, args.tex_only)
-            print(f"{'TEX' if args.tex_only else 'PDF'}: {out}")
+            print(f"PDF: {build(path, template, output_dir)}")
         except Exception as exc:
             print(f"FAILED {path}: {exc}", file=sys.stderr)
             failed = True
-    sys.exit(failed)
+    return failed
+
+
+def mtimes(files):
+    return {file: file.stat().st_mtime for file in files}
+
+
+def watch(resumes, template, output_dir):
+    watched = [*resumes, template]
+    last = None
+    print("Watching for changes. Press Ctrl+C to stop.")
+    while True:
+        current = mtimes(watched)
+        if current != last:
+            build_all(resumes, template, output_dir)
+            last = current
+        time.sleep(0.5)
+
+
+def main():
+    args = parse_args()
+    resumes = paths(args.resumes)
+    if args.watch:
+        try:
+            watch(resumes, args.template, args.output_dir)
+        except KeyboardInterrupt:
+            print("\nStopped watching.")
+            return
+    sys.exit(build_all(resumes, args.template, args.output_dir))
 
 
 if __name__ == "__main__":

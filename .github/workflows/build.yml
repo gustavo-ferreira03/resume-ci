@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "resumes/*.yml"
-      - "template.tex"
+      - "templates/*.typ"
       - "lib/**"
       - "lib/resume.schema.json"
       - ".github/workflows/build.yml"
