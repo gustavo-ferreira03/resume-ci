@@ -1,5 +1,3 @@
-# yaml-language-server: $schema=../lib/resume.schema.json
-
 personal:
   name: Alex Morgan
   title: Desarrollador Full Stack

@@ -5,17 +5,11 @@ Instructions for agents creating or editing resumes in this repository.
 ## Project Context
 
 - Resume content lives in `resumes/*.yml`.
-- The schema lives in `lib/resume.schema.json`.
-- The CLI builder lives in `lib/resume-ci.py`.
-- Typst templates live in `templates/*.typ`.
-- `lib/setup.sh` installs Python dependencies, Typst, and Font Awesome desktop fonts into `bin/`.
+- The CLI builder lives in `lib/resume-ci.ts` (Bun/TypeScript).
+- Each template is a folder `templates/<name>/` containing `template.typ` and `schema.ts`.
+- `schema.ts` owns the Zod input schema, data-normalization helpers, and `buildContext`.
+- `./setup.sh` installs Bun, npm dependencies, Typst, and Font Awesome desktop fonts into `bin/`.
 - Keep resume YAML files compatible with the schema and examples.
-
-When adding a new resume YAML file, include this first line:
-
-```yaml
-# yaml-language-server: $schema=../lib/resume.schema.json
-```
 
 ## YAML Rules
 
@@ -104,28 +98,35 @@ Prefer:
 Run setup first if `bin/typst` or `bin/fonts` are missing:
 
 ```bash
-lib/setup.sh
+./setup.sh
 ```
 
 Useful build command:
 
 ```bash
-lib/resume-ci.py
+bun lib/resume-ci.ts
 ```
 
 Preview while editing:
 
 ```bash
-lib/resume-ci.py --watch resumes/my-resume.yml
+bun lib/resume-ci.ts --watch resumes/my-resume.yml
+```
+
+Use a non-default template:
+
+```bash
+bun lib/resume-ci.ts --template my-template
 ```
 
 ## Builder And Template Boundaries
 
-- Python owns data work in `lib/resume-ci.py`: schema validation, defaults, period formatting, contact labels, domain extraction, profile usernames, and Markdown-style emphasis parsing.
-- Typst owns presentation work in `templates/*.typ`: page size, margins, spacing, typography, sections, lists, links, and icons.
+- `lib/resume-ci.ts` owns orchestration: finding files, loading the template module, and calling Typst.
+- `templates/<name>/schema.ts` owns what each template accepts (Zod `schema`) and how to transform it (`buildContext`).
+- `templates/<name>/template.typ` owns presentation: page size, margins, spacing, typography, sections, lists, links, and icons.
 - The builder passes normalized data to Typst as JSON through `sys.inputs.data`.
-- Do not make Typst templates load YAML directly or duplicate Python data-normalization logic.
-- If a field must be derived from YAML, add it to the Python context and keep the template focused on layout.
+- Do not make Typst templates load YAML directly or duplicate normalization logic from `schema.ts`.
+- When adding a field, update `schema.ts` (Zod + `buildContext`) and `template.typ` together.
 
 ## Section Guidance
 
@@ -140,7 +141,7 @@ lib/resume-ci.py --watch resumes/my-resume.yml
 
 Before finishing a resume edit, verify:
 
-- YAML matches `lib/resume.schema.json`.
+- YAML is valid against the template's Zod schema (`templates/default/schema.ts`).
 - Every major bullet can be traced to STAR.
 - No metric or claim was invented.
 - Bullets start with strong action verbs.

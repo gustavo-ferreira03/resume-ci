@@ -5,9 +5,9 @@ on:
     branches: [main]
     paths:
       - "resumes/*.yml"
-      - "templates/*.typ"
+      - "templates/**"
       - "lib/**"
-      - "lib/resume.schema.json"
+      - "setup.sh"
       - ".github/workflows/build.yml"
   workflow_dispatch:
 
@@ -20,11 +20,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup build tools
-        run: lib/setup.sh
+      - name: Setup
+        run: ./setup.sh
 
       - name: Build PDFs
-        run: lib/resume-ci.py
+        run: bun run build
 
       - name: Publish PDFs
         env:

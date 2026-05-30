@@ -1,5 +1,5 @@
-__pycache__/
 build/
 *.pdf
 .agents/
 bin/
+node_modules/
