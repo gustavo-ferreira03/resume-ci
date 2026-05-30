@@ -1,4 +1,5 @@
 $root = Split-Path -Parent $PSScriptRoot
+$lib = Join-Path $root "lib"
 $bin = Join-Path $root "lib\bin"
 $tmp = "$env:TEMP\resume-ci-setup"
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
@@ -8,7 +9,7 @@ if (-not (Get-Command bun -ErrorAction SilentlyContinue)) {
     $env:PATH = "$HOME\.bun\bin;$env:PATH"
 }
 
-bun install --cwd $root
+bun install --cwd $lib
 
 if (-not (Test-Path (Join-Path $bin "typst.exe"))) {
     $asset = (Invoke-RestMethod https://api.github.com/repos/typst/typst/releases/latest).assets | Where-Object name -match 'x86_64-pc-windows-msvc\.zip$' | Select-Object -First 1

@@ -1,149 +1,146 @@
 # resume-ci
 
-Build PDF resumes from YAML with Typst.
+Build PDF resumes from YAML with [Typst](https://typst.app).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Write resume content in `resumes/*.yml`. Push to `main` and GitHub Actions publishes the PDFs as release assets.
-
-## Prerequisites
-
-`curl`, `jq`, `tar`, `unzip` — Bun is installed automatically by `./setup.sh`.
+Write your resume content in YAML, version it with Git, and generate polished PDFs locally or through GitHub Actions. Fork or use this as a template repository — your content stays in plain text, your PDFs are always one command away.
 
 ## Quick Start
 
-Public repo: [fork this repository](../../fork).
-
-Private repo:
-
 ```bash
-git clone https://github.com/gustavo-ferreira03/resume-ci.git
-cd resume-ci
-git remote rename origin upstream
-git remote add origin <PRIVATE_REPO_URL>
-git push -u origin main
+cp resumes/resume-en.example.yml resumes/resume-en.yml
+make setup
+make build
 ```
 
-Create your resume from the example:
+PDFs are written to `build/`.
+
+## Requirements
+
+`make setup` handles everything: it installs Bun (if missing), Typst, and Font Awesome fonts into `lib/bin/`. The following system tools must already be present:
+
+```
+curl  jq  tar  unzip
+```
+
+Windows users can run:
+
+```powershell
+lib/setup.ps1
+bun lib/src/resume-ci.ts
+```
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `make setup` | Install all dependencies |
+| `make build` | Build every resume in `resumes/` |
+| `make build ARGS="resumes/resume-en.yml"` | Build a single resume |
+| `make watch` | Watch all resumes and templates, rebuild on change |
+| `bun lib/src/resume-ci.ts --watch resumes/resume-en.yml` | Watch a single resume |
+| `bun lib/src/resume-ci.ts --output-dir dist` | Use a custom output directory |
+
+## YAML Structure
+
+Start from an example:
 
 ```bash
 cp resumes/resume-en.example.yml resumes/resume-en.yml
 ```
 
-Edit `resumes/resume-en.yml`, push to `main`, and download the PDF from the latest release.
+```yaml
+meta:
+  template: default
+  font: New Computer Modern
+  output_filename: resume_alex_morgan_en
+  section_titles:
+    experience: Experience
+    projects: Projects
+    education: Education
+    skills: Technical Skills
 
-## Local Build
+personal:
+  name: Alex Morgan
+  title: Full Stack Developer
+  email: alex.morgan@example.com
+  phone: "+1 555 000 0000"                              # optional
+  location: "City, State"                               # optional
+  linkedin_url: https://linkedin.com/in/alex-morgan     # optional
+  github_url: https://github.com/alex-morgan             # optional
 
-```bash
-# Linux / macOS
-make setup   # installs dependencies, Typst, and Font Awesome fonts
-make build   # builds all resumes in resumes/
+summary: Short profile text.                            # optional
 
-# Windows (PowerShell)
-lib/setup.ps1
-bun lib/src/resume-ci.ts
+experience:
+  - company: Example Corp
+    role: Full Stack Developer
+    period: { from: Jan 2022, to: Present }
+    url: https://example.com                            # optional
+    bullets:
+      - Built **REST APIs** with **Node.js** and **PostgreSQL**.
+
+projects: []        # same shape as experience; company = project name
+certifications: []  # list of plain strings
+
+education:
+  - institution: State University
+    degree: Bachelor of Science in Computer Science
+    location: City, State
+    period: { from: Aug 2018, to: May 2022 }
+
+skills:
+  - label: Backend
+    items: TypeScript, Node.js, PostgreSQL
 ```
 
-PDFs are written to `build/`.
+Set any list section to `[]` to hide it from the PDF.
 
-Live preview while editing:
+### Field Reference
 
-```bash
-# Linux / macOS
-make watch
+| Field | Required | Notes |
+|---|---|---|
+| `meta.template` | no | Template name without `.typ`; defaults to `default` |
+| `meta.font` | no | Typst font family name; defaults to `New Computer Modern` |
+| `meta.output_filename` | yes | Letters, digits, `_`, and `-` only |
+| `meta.section_titles` | no | Override section labels for localization |
+| `summary` | no | Short profile summary shown below the header |
+| `experience` | yes | Work history entries |
+| `projects` | no | Defaults to `[]` |
+| `certifications` | no | Defaults to `[]` |
+| `education` | yes | Education entries |
+| `skills` | yes | Grouped skill rows |
 
-# Windows (PowerShell)
-bun lib/src/resume-ci.ts --watch
-```
+### Bullet Formatting
 
-## How It Works
+Bullets and text fields support a small Markdown subset:
 
-```text
-resumes/*.yml
-      |
-      v
-lib/src/resume-ci.ts  validates and normalizes resume data
-      |
-      v
-lib/src/schema.ts         Zod schema and data normalization
-      |
-      v
-templates/<name>.typ        formats the data
-      |
-      v
-Typst  writes build/*.pdf
-```
-
-The builder passes normalized data to Typst as JSON through `sys.inputs.data`. Templates should not load or normalize YAML directly.
-
-## Repository Structure
-
-```text
-resumes/
-  resume-en.example.yml       English example
-templates/
-  default.typ                 Typst layout
-lib/
-  src/
-    resume-ci.ts              Builder CLI
-    schema.ts                 Zod schema + data normalization
-    utils.ts                  Shared data helpers
-  setup.sh                    Local/CI setup script
-.github/
-  workflows/build.yml         GitHub Actions workflow
-```
-
-## Multiple Resumes
-
-Add one YAML file per resume version. The builder compiles every `*.yml` in `resumes/`.
-
-```text
-resumes/resume-en.yml    ->  resume_your_name_en.pdf
-resumes/resume-es.yml    ->  curriculum_su_nombre_es.pdf
-resumes/resume-ptbr.yml  ->  curriculo_seu_nome_ptbr.pdf
-```
-
-## YAML Reference
-
-Start with [`resumes/resume-en.example.yml`](resumes/resume-en.example.yml). Main fields:
-
-| Field | What it controls |
-|---|---|
-| `personal` | Name, title, email, phone, location, LinkedIn URL, GitHub URL |
-| `summary` | Optional short profile summary |
-| `meta.template` | Template file name under `templates/` (without `.typ`); defaults to `default` |
-| `meta.font` | Typst font name; defaults to `New Computer Modern` |
-| `meta.section_titles` | Section label overrides for non-English resumes |
-| `meta.output_filename` | PDF file name without `.pdf` (letters, digits, `_`, `-`) |
-| `experience` | Roles with company, period, URL, and bullets |
-| `projects` | Same shape as `experience` |
-| `certifications` | Optional list of certifications |
-| `education` | Institution, degree, location, and period |
-| `skills` | List of `label` and `items` pairs |
-
-Set any list section to `[]` to hide it.
-
-## Bullet Formatting
-
-| Marker | PDF output |
+| Syntax | Output |
 |---|---|
 | `**text**` | bold |
 | `_text_` | italic |
 
-## Custom Templates
+## Templates
 
-Each template is a single Typst file under `templates/` named `<name>.typ`.
-
-To use a non-default template, set it in your resume YAML:
+Templates are single Typst files in `templates/`. Select one from your YAML:
 
 ```yaml
 meta:
-  template: my-template
+  template: my-template  # resolves to templates/my-template.typ
 ```
 
-The builder resolves it to `templates/my-template.typ`.
+> [!NOTE]
+> `meta.font` must be a Typst font family name.
+
+## GitHub Actions
+
+The workflow runs on pushes to `main` when resume, template, or builder files change.
+
+On push, it builds PDFs and uploads `build/*.pdf` as a workflow artifact. On manual workflow runs from the Actions tab, it also creates a GitHub Release tagged `build-<run_number>` with the generated PDFs attached.
 
 ## Pulling Updates
+
+If you keep this repository as `upstream`:
 
 ```bash
 git fetch upstream

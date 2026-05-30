@@ -5,21 +5,25 @@ Instructions for agents creating or editing resumes in this repository.
 ## Project Context
 
 - Resume content lives in `resumes/*.yml`.
-- The CLI builder lives in `lib/src/resume-ci.ts` (Bun/TypeScript).
+- The builder CLI lives in `lib/src/resume-ci.ts`.
 - The Zod schema lives in `lib/src/schema.ts`.
-- Each template is a single file `templates/<name>.typ`.
-- `make setup` (Linux/macOS) or `lib/setup.ps1` (Windows) installs Bun, npm dependencies, Typst, and Font Awesome desktop fonts into `lib/bin/`.
-- Keep resume YAML files compatible with the schema and examples.
+- Shared rich-text and formatting helpers live in `lib/src/utils.ts`.
+- Templates are single Typst files: `templates/<name>.typ`.
+- Setup scripts install Bun dependencies, Typst, and Font Awesome desktop fonts into `lib/bin/`.
+- GitHub Actions builds PDFs on push and uploads them as workflow artifacts; manual workflow runs also create a GitHub Release.
 
 ## YAML Rules
 
-- Use the existing shape from `resumes/*.example.yml`.
-- Keep keys stable: `meta`, `personal`, `summary`, `experience`, `projects`, `certifications`, `education`, `skills`.
+- Use the shape from `resumes/*.example.yml`.
+- Keep top-level keys stable: `meta`, `personal`, `summary`, `experience`, `projects`, `certifications`, `education`, `skills`.
+- Put build and presentation settings under `meta`.
+- Use `meta.template` for the template name without `.typ`; default is `default`.
 - Use a real Typst font name in `meta.font`; default examples use `New Computer Modern`.
-- Use `[]` to hide any list-backed section; keep required keys present even when empty.
 - Use only letters, digits, `_`, and `-` in `meta.output_filename`.
-- Do not add unsupported fields unless the schema and builder are updated together.
-- Preserve Markdown-style emphasis in bullets only where useful: `**bold**` and `_italic_`.
+- Use `meta.section_titles` for translated or customized section labels.
+- Use `[]` to hide any list-backed section; keep required keys present unless the schema supplies a default.
+- Do not add unsupported fields unless `lib/src/schema.ts` and the relevant template are updated together.
+- Preserve Markdown-style emphasis only where useful: `**bold**` and `_italic_`.
 
 ## STAR Method
 
@@ -95,30 +99,39 @@ Prefer:
 6. Keep the strongest and most relevant evidence near the top.
 7. Validate the YAML and run the builder when changing resume files.
 
+## Commands
+
 Run setup first if `lib/bin/typst` or `lib/bin/fonts` are missing:
 
 ```bash
-# Linux / macOS
 make setup
-
-# Windows (PowerShell)
-lib/setup.ps1
 ```
 
-Useful build command:
+Build all resumes:
 
 ```bash
 make build
 ```
 
-Preview while editing:
+Build one resume:
 
 ```bash
-make watch                                                # watches all resumes/
-bun lib/src/resume-ci.ts --watch resumes/my-resume.yml    # watch a single file
+make build ARGS="resumes/my-resume.yml"
 ```
 
-Use a non-default template by setting it in the resume YAML:
+Watch all resumes:
+
+```bash
+make watch
+```
+
+Watch one resume:
+
+```bash
+bun lib/src/resume-ci.ts --watch resumes/my-resume.yml
+```
+
+Use a non-default template by setting it in YAML:
 
 ```yaml
 meta:
@@ -127,31 +140,35 @@ meta:
 
 ## Builder And Template Boundaries
 
-- `lib/src/resume-ci.ts` owns orchestration: finding files, loading YAML, resolving the template, and calling Typst.
-- `lib/src/schema.ts` owns the Zod input schema and data normalization.
-- `templates/<name>.typ` owns presentation: page size, margins, spacing, typography, sections, lists, links, and icons.
-- The builder passes normalized data to Typst as JSON through `sys.inputs.data`.
-- Do not make Typst templates load YAML directly or duplicate normalization logic from the schema.
-- When adding a field, update `lib/src/schema.ts` and the relevant `template.typ` together.
+- `lib/src/resume-ci.ts` owns orchestration: finding resume files, loading YAML, resolving templates, and calling Typst.
+- `lib/src/schema.ts` owns input validation and normalization into the Typst JSON context.
+- `templates/<name>.typ` owns presentation only: page size, margins, spacing, typography, sections, lists, links, and icons.
+- The builder passes normalized data to Typst through `sys.inputs.data`.
+- Do not make Typst templates load YAML directly.
+- Do not duplicate schema or normalization logic inside Typst templates.
+- When adding a field, update `lib/src/schema.ts`, the relevant `templates/<name>.typ`, examples, and docs together.
 
 ## Section Guidance
 
+- `meta`: keep template, font, output filename, and section labels accurate.
 - `personal`: keep contact fields accurate and complete.
+- `summary`: keep concise and specific; avoid generic positioning language.
 - `experience`: prioritize 3-6 strong bullets per role when possible.
 - `projects`: include projects only when they add relevant proof not already covered by experience.
+- `certifications`: include only credentials that matter for the target role.
 - `education`: keep concise unless the credential is central to the target role.
 - `skills`: group real skills by category; do not keyword-stuff tools the candidate cannot discuss.
-- `meta.section_titles`: translate section labels consistently when writing non-English resumes.
 
 ## Final Review Checklist
 
 Before finishing a resume edit, verify:
 
-- YAML is valid against the Zod schema in `lib/src/schema.ts`.
+- YAML is valid against `lib/src/schema.ts`.
+- `make build` succeeds without warnings or errors.
 - Every major bullet can be traced to STAR.
 - No metric or claim was invented.
 - Bullets start with strong action verbs.
 - The language is plain and specific.
 - No obvious AI writing patterns remain.
 - The target role is clear from the title, summary if present, and top bullets.
-- The output file name is valid.
+- `meta.output_filename` is valid.

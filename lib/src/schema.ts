@@ -19,7 +19,7 @@ export const resumeSchema = z.object({
   summary: z.string().min(1).optional(),
   meta: z.object({
     template: z.string().default("default"),
-    font: z.string().default("New Computer Modern"),
+    font: z.string().trim().min(1).default("New Computer Modern"),
     output_filename: z.string().regex(/^[A-Za-z0-9_-]+$/),
     section_titles: z.object({
       summary: z.string().min(1).optional(),

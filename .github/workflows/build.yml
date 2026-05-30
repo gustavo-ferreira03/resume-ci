@@ -5,9 +5,9 @@ on:
     branches: [main]
     paths:
       - "resumes/*.yml"
-      - "templates/**"
+      - "templates/*.typ"
       - "lib/**"
-      - "setup.sh"
+      - "Makefile"
       - ".github/workflows/build.yml"
   workflow_dispatch:
 
@@ -23,9 +23,6 @@ jobs:
       - name: Setup
         shell: bash
         run: make setup
-
-      - name: Add Bun to PATH
-        run: echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
       - name: Build PDFs
         shell: bash
