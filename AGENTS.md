@@ -14,7 +14,7 @@ Instructions for agents creating or editing resumes in this repository.
 ## YAML Rules
 
 - Use the existing shape from `resumes/*.example.yml`.
-- Keep keys stable: `personal`, `summary`, `font`, `section_titles`, `experience`, `projects`, `certifications`, `education`, `skills`, `output_filename`.
+- Keep keys stable: `personal`, `summary`, `template`, `font`, `section_titles`, `experience`, `projects`, `certifications`, `education`, `skills`, `output_filename`.
 - Use a real Typst font name in `font`; default examples use `New Computer Modern`.
 - Use `[]` to hide any list-backed section; keep required keys present even when empty.
 - Use only letters, digits, `_`, and `-` in `output_filename`.
@@ -118,10 +118,10 @@ make watch                                                # watches all resumes/
 bun lib/src/resume-ci.ts --watch resumes/my-resume.yml    # watch a single file
 ```
 
-Use a non-default template:
+Use a non-default template by setting it in the resume YAML:
 
-```bash
-make build TEMPLATE=my-template
+```yaml
+template: my-template
 ```
 
 ## Builder And Template Boundaries

@@ -59,17 +59,12 @@ function buildContext(data: Resume): Record<string, unknown> {
 
 class Builder {
   private constructor(
-    private readonly templatePath: string,
     private readonly outputDir: string,
     private readonly paths: string[],
   ) {}
 
-  static create(templateName: string, outputDir: string, explicit: string[] | null) {
-    const templatePath = join(TEMPLATE_DIR, templateName, "template.typ")
-    try { statSync(templatePath) } catch {
-      throw new Error(`Template not found: ${templatePath}`)
-    }
-    return new Builder(templatePath, outputDir, Builder.resolvePaths(explicit))
+  static create(outputDir: string, explicit: string[] | null) {
+    return new Builder(outputDir, Builder.resolvePaths(explicit))
   }
 
   async buildAll(): Promise<boolean> {
@@ -82,7 +77,7 @@ class Builder {
   }
 
   async watch(): Promise<void> {
-    const watched = [...this.paths, this.templatePath]
+    const watched = [...this.paths, ...Builder.templatePaths()]
     let last: string | null = null
 
     process.on("SIGINT", () => { console.log("\nStopped watching."); process.exit(0) })
@@ -105,13 +100,19 @@ class Builder {
       throw new Error(`${path}: ${issue.message}`)
     }
 
-    const ctx = buildContext(result.data)
+    const data = result.data
+    const templatePath = join(TEMPLATE_DIR, data.template, "template.typ")
+    try { statSync(templatePath) } catch {
+      throw new Error(`Template not found: ${templatePath}`)
+    }
+
+    const ctx = buildContext(data)
     mkdirSync(this.outputDir, { recursive: true })
     const pdf = join(this.outputDir, `${ctx.output_filename}.pdf`)
 
     const proc = Bun.spawn(
       [Builder.findTypst(), "compile", "--root", ROOT, "--font-path", FONT_DIR,
-       "--input", `data=${JSON.stringify(ctx)}`, relative(ROOT, this.templatePath), pdf],
+       "--input", `data=${JSON.stringify(ctx)}`, relative(ROOT, templatePath), pdf],
       { cwd: ROOT, stderr: "inherit" },
     )
     if (await proc.exited !== 0) throw new Error("typst compile failed")
@@ -126,6 +127,15 @@ class Builder {
       .map(f => join(DATA_DIR, f))
     if (!files.length) { console.error("No resume YAML files found."); process.exit(0) }
     return files
+  }
+
+  private static templatePaths(): string[] {
+    const paths: string[] = []
+    for (const dir of readdirSync(TEMPLATE_DIR)) {
+      const p = join(TEMPLATE_DIR, dir, "template.typ")
+      try { statSync(p); paths.push(p) } catch {}
+    }
+    return paths
   }
 
   private static findTypst(): string {
@@ -143,7 +153,6 @@ class Builder {
 const { values, positionals } = parseArgs({
   args: Bun.argv.slice(2),
   options: {
-    template:     { type: "string",  default: "default" },
     "output-dir": { type: "string",  default: BUILD_DIR },
     watch:        { type: "boolean", default: false },
   },
@@ -151,7 +160,6 @@ const { values, positionals } = parseArgs({
 })
 
 const builder = Builder.create(
-  values.template as string,
   values["output-dir"] as string,
   positionals.length ? positionals.map(p => resolve(p)) : null,
 )
