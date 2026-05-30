@@ -65,10 +65,10 @@ resumes/*.yml
 lib/src/resume-ci.ts  validates and normalizes resume data
       |
       v
-lib/src/schema.ts  defines the Zod schema and Typst context
+lib/src/schema.ts         Zod schema and data normalization
       |
       v
-templates/<name>/template.typ  formats the data
+templates/<name>.typ        formats the data
       |
       v
 Typst  writes build/*.pdf
@@ -82,8 +82,7 @@ The builder passes normalized data to Typst as JSON through `sys.inputs.data`. T
 resumes/
   resume-en.example.yml       English example
 templates/
-  default/
-    template.typ              Typst layout
+  default.typ                 Typst layout
 lib/
   src/
     resume-ci.ts              Builder CLI
@@ -112,15 +111,15 @@ Start with [`resumes/resume-en.example.yml`](resumes/resume-en.example.yml). Mai
 |---|---|
 | `personal` | Name, title, email, phone, location, LinkedIn URL, GitHub URL |
 | `summary` | Optional short profile summary |
-| `template` | Template folder name under `templates/`; defaults to `default` |
-| `font` | Typst font name; defaults to `New Computer Modern` |
-| `section_titles` | Section label overrides for non-English resumes |
+| `meta.template` | Template file name under `templates/` (without `.typ`); defaults to `default` |
+| `meta.font` | Typst font name; defaults to `New Computer Modern` |
+| `meta.section_titles` | Section label overrides for non-English resumes |
+| `meta.output_filename` | PDF file name without `.pdf` (letters, digits, `_`, `-`) |
 | `experience` | Roles with company, period, URL, and bullets |
 | `projects` | Same shape as `experience` |
 | `certifications` | Optional list of certifications |
 | `education` | Institution, degree, location, and period |
 | `skills` | List of `label` and `items` pairs |
-| `output_filename` | PDF file name without `.pdf` (letters, digits, `_`, `-`) |
 
 Set any list section to `[]` to hide it.
 
@@ -133,17 +132,16 @@ Set any list section to `[]` to hide it.
 
 ## Custom Templates
 
-Each template is a folder under `templates/` containing:
-
-- `template.typ` — Typst layout
+Each template is a single Typst file under `templates/` named `<name>.typ`.
 
 To use a non-default template, set it in your resume YAML:
 
 ```yaml
-template: my-template
+meta:
+  template: my-template
 ```
 
-If omitted, it defaults to `default`.
+The builder resolves it to `templates/my-template.typ`.
 
 ## Pulling Updates
 

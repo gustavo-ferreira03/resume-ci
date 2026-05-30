@@ -1,18 +1,19 @@
+meta:
+  template: default
+  font: New Computer Modern
+  output_filename: resume_alex_morgan_en
+  section_titles:
+    experience: Experience
+    projects: Projects
+    education: Education
+    skills: Technical Skills
+
 personal:
   name: Alex Morgan
   title: Full Stack Developer
   email: alex.morgan@example.com
   linkedin_url: https://linkedin.com/in/alex-morgan
   github_url: https://github.com/alex-morgan
-
-template: default
-font: New Computer Modern
-
-section_titles:
-  experience: Experience
-  projects: Projects
-  education: Education
-  skills: Technical Skills
 
 experience:
   - company: Example Corp
@@ -57,5 +58,3 @@ skills:
     items: Playwright, Selenium, Jest, JUnit
   - label: Languages
     items: English (Native), Portuguese (Professional)
-
-output_filename: resume_alex_morgan_en

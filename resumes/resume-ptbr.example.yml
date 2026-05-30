@@ -1,18 +1,19 @@
+meta:
+  template: default
+  font: New Computer Modern
+  output_filename: curriculo_alex_morgan_ptbr
+  section_titles:
+    experience: Experiência Profissional
+    projects: Projetos
+    education: Formação Acadêmica
+    skills: Competências e Idiomas
+
 personal:
   name: Alex Morgan
   title: Desenvolvedor Full Stack
   email: alex.morgan@example.com
   linkedin_url: https://linkedin.com/in/alex-morgan
   github_url: https://github.com/alex-morgan
-
-template: default
-font: New Computer Modern
-
-section_titles:
-  experience: Experiência Profissional
-  projects: Projetos
-  education: Formação Acadêmica
-  skills: Competências e Idiomas
 
 experience:
   - company: Empresa Exemplo
@@ -57,5 +58,3 @@ skills:
     items: Playwright, Selenium, Jest, JUnit
   - label: Idiomas
     items: Português (Nativo), Inglês (Profissional)
-
-output_filename: curriculo_alex_morgan_ptbr

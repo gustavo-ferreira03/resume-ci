@@ -8,11 +8,11 @@ import { z } from "zod"
 import { resumeSchema, role, education, type Resume } from "./schema.ts"
 import { rich, periodStr, extractDomain, extractUsername } from "./utils.ts"
 
-const ROOT        = resolve(import.meta.dir, "../..")
-const DATA_DIR    = join(ROOT, "resumes")
-const BUILD_DIR   = join(ROOT, "build")
-const FONT_DIR    = join(ROOT, "lib", "bin", "fonts")
-const TEMPLATE_DIR = join(ROOT, "templates")
+const ROOT      = resolve(import.meta.dir, "../..")
+const DATA_DIR  = join(ROOT, "resumes")
+const BUILD_DIR = join(ROOT, "build")
+const FONT_DIR  = join(ROOT, "lib", "bin", "fonts")
+const TPL_DIR   = join(ROOT, "templates")
 
 
 const SECTION_TITLES = {
@@ -39,20 +39,20 @@ function buildRole(item: z.infer<typeof role>) {
 
 function buildContext(data: Resume): Record<string, unknown> {
   return {
-    font:           data.font,
-    section_titles: { ...SECTION_TITLES, ...(data.section_titles ?? {}) },
-    personal:       { name: rich(data.personal.name), title: rich(data.personal.title) },
-    contact:        buildContacts(data.personal),
-    summary:        rich(data.summary ?? ""),
-    experience:     data.experience.map(buildRole),
-    projects:       data.projects.map(buildRole),
+    font: data.meta.font,
+    section_titles: { ...SECTION_TITLES, ...(data.meta.section_titles ?? {}) },
+    personal: { name: rich(data.personal.name), title: rich(data.personal.title) },
+    contact: buildContacts(data.personal),
+    summary: rich(data.summary ?? ""),
+    experience: data.experience.map(buildRole),
+    projects: data.projects.map(buildRole),
     certifications: data.certifications.map(rich),
-    education:      data.education.map(item => ({
+    education: data.education.map(item => ({
       institution: rich(item.institution), period: periodStr(item.period),
       degree: rich(item.degree), location: rich(item.location),
     })),
-    skills:         data.skills.map(item => ({ label: rich(item.label), items: rich(item.items) })),
-    output_filename: data.output_filename,
+    skills: data.skills.map(item => ({ label: rich(item.label), items: rich(item.items) })),
+    output_filename: data.meta.output_filename,
   }
 }
 
@@ -101,7 +101,7 @@ class Builder {
     }
 
     const data = result.data
-    const templatePath = join(TEMPLATE_DIR, data.template, "template.typ")
+    const templatePath = join(TPL_DIR, `${data.meta.template}.typ`)
     try { statSync(templatePath) } catch {
       throw new Error(`Template not found: ${templatePath}`)
     }
@@ -130,12 +130,9 @@ class Builder {
   }
 
   private static templatePaths(): string[] {
-    const paths: string[] = []
-    for (const dir of readdirSync(TEMPLATE_DIR)) {
-      const p = join(TEMPLATE_DIR, dir, "template.typ")
-      try { statSync(p); paths.push(p) } catch {}
-    }
-    return paths
+    return readdirSync(TPL_DIR)
+      .filter(f => f.endsWith(".typ"))
+      .map(f => join(TPL_DIR, f))
   }
 
   private static findTypst(): string {
