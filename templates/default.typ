@@ -72,11 +72,11 @@
     columns: (1fr, auto),
     column-gutter: 0.5em,
     emph(rich(item.at("role", default: ()))),
-    align(right)[#if url != "" { link(url)[#item.at("domain", default: "")] }],
+    emph(align(right)[#if url != "" { link(url)[#item.at("domain", default: "")] }]),
   )
   v(4pt)
   bullet-list(item.at("bullets", default: ()))
-  v(2pt)
+  v(6pt)
 }
 
 #let education-entry(item) = {
@@ -95,7 +95,7 @@
   v(2pt)
 }
 
-#set page(width: 210mm, height: 297mm, margin: (left: 0.7cm, top: 0.5cm, right: 0.7cm, bottom: 0.5cm))
+#set page(width: 210mm, height: auto, margin: (left: 0.7cm, top: 0.5cm, right: 0.7cm, bottom: 0.5cm))
 #set text(font: data.at("font", default: "New Computer Modern"), size: 10pt, fill: rgb("000000"))
 #set par(leading: 0.48em, spacing: 0.35em, justify: false)
 #show link: set text(fill: rgb("000000"))
@@ -147,3 +147,8 @@
     #strong(rich(item.at("label", default: ()))): #rich(item.at("items", default: ())) \
   ]
 ]
+
+#context {
+  let pos = here().position()
+  v(calc.max(0pt, 297mm - 0.5cm - pos.y))
+}
