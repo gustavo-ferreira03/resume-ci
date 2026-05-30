@@ -24,6 +24,9 @@ jobs:
         shell: bash
         run: make setup
 
+      - name: Add Bun to PATH
+        run: echo "$HOME/.bun/bin" >> $GITHUB_PATH
+
       - name: Build PDFs
         shell: bash
         run: make build
