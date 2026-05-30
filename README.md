@@ -50,10 +50,11 @@ Live preview while editing:
 
 ```bash
 # Linux / macOS
-make build ARGS="--watch resumes/resume-en.yml"
+make watch                # watches all resumes/
+make build ARGS="--watch" # same as above
 
 # Windows (PowerShell)
-bun lib/src/resume-ci.ts --watch resumes/resume-en.yml
+bun lib/src/resume-ci.ts --watch
 ```
 
 ## How It Works
