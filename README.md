@@ -35,8 +35,13 @@ Edit `resumes/resume-en.yml`, push to `main`, and download the PDF from the late
 ## Local Build
 
 ```bash
+# Linux / macOS
 make setup   # installs dependencies, Typst, and Font Awesome fonts
 make build   # builds all resumes in resumes/
+
+# Windows (PowerShell)
+lib/setup.ps1
+bun lib/src/resume-ci.ts
 ```
 
 PDFs are written to `build/`.
@@ -44,7 +49,11 @@ PDFs are written to `build/`.
 Live preview while editing:
 
 ```bash
+# Linux / macOS
 make build ARGS="--watch resumes/resume-en.yml"
+
+# Windows (PowerShell)
+bun lib/src/resume-ci.ts --watch resumes/resume-en.yml
 ```
 
 ## How It Works
