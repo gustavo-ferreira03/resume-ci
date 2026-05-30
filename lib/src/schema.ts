@@ -17,6 +17,7 @@ export const education = z.object({
 
 export const resumeSchema = z.object({
   summary:        z.string().min(1).optional(),
+  template:       z.string().default("default"),
   font:           z.string().default("New Computer Modern"),
   section_titles: z.object({
     summary:        z.string().min(1).optional(),

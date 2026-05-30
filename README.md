@@ -112,6 +112,7 @@ Start with [`resumes/resume-en.example.yml`](resumes/resume-en.example.yml). Mai
 |---|---|
 | `personal` | Name, title, email, phone, location, LinkedIn URL, GitHub URL |
 | `summary` | Optional short profile summary |
+| `template` | Template folder name under `templates/`; defaults to `default` |
 | `font` | Typst font name; defaults to `New Computer Modern` |
 | `section_titles` | Section label overrides for non-English resumes |
 | `experience` | Roles with company, period, URL, and bullets |
@@ -136,17 +137,13 @@ Each template is a folder under `templates/` containing:
 
 - `template.typ` — Typst layout
 
-To use a non-default template:
+To use a non-default template, set it in your resume YAML:
 
-```bash
-make build TEMPLATE=my-template
+```yaml
+template: my-template
 ```
 
-Or directly:
-
-```bash
-bun lib/src/resume-ci.ts --template my-template
-```
+If omitted, it defaults to `default`.
 
 ## Pulling Updates
 
