@@ -21,9 +21,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup
+        shell: bash
         run: make setup
 
       - name: Build PDFs
+        shell: bash
         run: make build
 
       - name: Publish PDFs
