@@ -62,13 +62,13 @@ bun lib/src/resume-ci.ts --watch
 resumes/*.yml
       |
       v
-lib/resume-ci.ts  validates and normalizes resume data
+lib/src/resume-ci.ts  validates and normalizes resume data
       |
       v
-templates/default/schema.ts  defines the schema and Typst context
+lib/src/schema.ts  defines the Zod schema and Typst context
       |
       v
-templates/default/template.typ  formats the data
+templates/<name>/template.typ  formats the data
       |
       v
 Typst  writes build/*.pdf
@@ -83,11 +83,12 @@ resumes/
   resume-en.example.yml       English example
 templates/
   default/
-    schema.ts                 Zod schema + data normalization
     template.typ              Typst layout
 lib/
-  resume-ci.ts                Builder CLI
-  utils.ts                    Shared data helpers
+  src/
+    resume-ci.ts              Builder CLI
+    schema.ts                 Zod schema + data normalization
+    utils.ts                  Shared data helpers
   setup.sh                    Local/CI setup script
 .github/
   workflows/build.yml         GitHub Actions workflow
@@ -131,15 +132,20 @@ Set any list section to `[]` to hide it.
 
 ## Custom Templates
 
-Each template is a folder under `templates/` with two files:
+Each template is a folder under `templates/` containing:
 
-- `schema.ts` — Zod input schema and `buildContext` function
 - `template.typ` — Typst layout
 
 To use a non-default template:
 
 ```bash
-bun lib/resume-ci.ts --template my-template
+make build TEMPLATE=my-template
+```
+
+Or directly:
+
+```bash
+bun lib/src/resume-ci.ts --template my-template
 ```
 
 ## Pulling Updates

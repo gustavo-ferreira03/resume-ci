@@ -121,7 +121,7 @@ bun lib/src/resume-ci.ts --watch resumes/my-resume.yml    # watch a single file
 Use a non-default template:
 
 ```bash
-make build --template my-template
+make build TEMPLATE=my-template
 ```
 
 ## Builder And Template Boundaries
