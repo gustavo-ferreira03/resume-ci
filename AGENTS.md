@@ -114,9 +114,8 @@ make build
 Preview while editing:
 
 ```bash
-make watch                 # watches all resumes/
-make build --watch         # same as above
-make build --watch resumes/my-resume.yml  # watch a single file
+make watch                                                # watches all resumes/
+bun lib/src/resume-ci.ts --watch resumes/my-resume.yml    # watch a single file
 ```
 
 Use a non-default template:

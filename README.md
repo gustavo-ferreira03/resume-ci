@@ -50,8 +50,7 @@ Live preview while editing:
 
 ```bash
 # Linux / macOS
-make watch                # watches all resumes/
-make build ARGS="--watch" # same as above
+make watch
 
 # Windows (PowerShell)
 bun lib/src/resume-ci.ts --watch
