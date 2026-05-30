@@ -8,7 +8,7 @@ Instructions for agents creating or editing resumes in this repository.
 - The CLI builder lives in `lib/resume-ci.ts` (Bun/TypeScript).
 - Each template is a folder `templates/<name>/` containing `template.typ` and `schema.ts`.
 - `schema.ts` owns the Zod input schema, data-normalization helpers, and `buildContext`.
-- `./setup.sh` installs Bun, npm dependencies, Typst, and Font Awesome desktop fonts into `bin/`.
+- `make setup` installs Bun, npm dependencies, Typst, and Font Awesome desktop fonts into `bin/`.
 - Keep resume YAML files compatible with the schema and examples.
 
 ## YAML Rules
@@ -98,25 +98,25 @@ Prefer:
 Run setup first if `bin/typst` or `bin/fonts` are missing:
 
 ```bash
-./setup.sh
+make setup
 ```
 
 Useful build command:
 
 ```bash
-bun lib/resume-ci.ts
+make build
 ```
 
 Preview while editing:
 
 ```bash
-bun lib/resume-ci.ts --watch resumes/my-resume.yml
+make build --watch resumes/my-resume.yml
 ```
 
 Use a non-default template:
 
 ```bash
-bun lib/resume-ci.ts --template my-template
+make build --template my-template
 ```
 
 ## Builder And Template Boundaries

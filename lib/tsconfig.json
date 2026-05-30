@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "types": ["bun-types"],
+    "typeRoots": ["./node_modules/@types", "./node_modules"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "strict": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  }
+}

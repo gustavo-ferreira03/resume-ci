@@ -3,10 +3,7 @@
   "version": "0.1.0",
   "dependencies": {
     "yaml": "^2.7.0",
-    "zod": "^3.25.0"
-  },
-  "scripts": {
-    "build": "bun lib/resume-ci.ts"
+    "zod": "^4.4.3"
   },
   "type": "module",
   "devDependencies": {

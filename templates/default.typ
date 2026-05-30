@@ -6,13 +6,9 @@
   for part in parts {
     let text = part.at("text", default: "")
     let style = part.at("style", default: "")
-    if style == "strong" {
-      strong(text)
-    } else if style == "emph" {
-      emph(text)
-    } else {
-      text
-    }
+    if style == "strong" { strong(text) }
+    else if style == "emph" { emph(text) }
+    else { text }
   }
 }
 
@@ -24,7 +20,6 @@
   for item in items {
     if not first { sep() }
     first = false
-
     let icon-name = item.at("icon", default: "")
     let href = item.at("href", default: "")
     let label = item.at("text", default: "")
@@ -33,11 +28,7 @@
       #if icon-name != "" [#icon(icon-name, solid: item.at("solid", default: false))]
       #visible-label
     ]
-    if href != "" {
-      link(href)[#body]
-    } else {
-      body
-    }
+    if href != "" { link(href)[#body] } else { body }
   }
 }
 
@@ -108,7 +99,7 @@
   #v(8pt)
   #text(size: 12pt)[#rich(personal.at("title", default: ()))] \
   #v(8pt)
-  #text(size: 10pt)[#contact(data.at("contact", default: ())) ]
+  #text(size: 10pt)[#contact(data.at("contact", default: ()))]
 ]
 
 #v(10pt)

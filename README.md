@@ -35,8 +35,8 @@ Edit `resumes/resume-en.yml`, push to `main`, and download the PDF from the late
 ## Local Build
 
 ```bash
-./setup.sh    # installs dependencies, Typst, and Font Awesome fonts
-bun run build   # builds all resumes in resumes/
+make setup   # installs dependencies, Typst, and Font Awesome fonts
+make build   # builds all resumes in resumes/
 ```
 
 PDFs are written to `build/`.
@@ -44,7 +44,7 @@ PDFs are written to `build/`.
 Live preview while editing:
 
 ```bash
-bun run build --watch resumes/resume-en.yml
+make build ARGS="--watch resumes/resume-en.yml"
 ```
 
 ## How It Works

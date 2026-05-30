@@ -21,10 +21,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup
-        run: ./setup.sh
+        run: make setup
 
       - name: Build PDFs
-        run: bun run build
+        run: make build
 
       - name: Publish PDFs
         env:

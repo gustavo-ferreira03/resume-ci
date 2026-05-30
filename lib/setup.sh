@@ -2,6 +2,7 @@
 set -eu
 
 cd "$(dirname "$0")"
+root="$(cd .. && pwd)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
@@ -24,15 +25,15 @@ if [ ! -f "bin/typst" ]; then
     *" arm64"|*" aarch64")            target="aarch64-unknown-linux-musl" ;;
     *)                                target="x86_64-unknown-linux-musl" ;;
   esac
-  mkdir -p bin
+  mkdir -p "bin"
   curl -fsSL "$(asset typst/typst "$target")" -o "$tmp/typst.tar.xz"
   tar -xf "$tmp/typst.tar.xz" -C "$tmp"
-  mv "$tmp"/typst-*/typst bin/typst
-  chmod +x bin/typst
+  mv "$tmp"/typst-*/typst "bin/typst"
+  chmod +x "bin/typst"
 fi
 
 if [ ! -d "bin/fonts" ]; then
-  mkdir -p bin/fonts
+  mkdir -p "bin/fonts"
   curl -fsSL "$(asset FortAwesome/Font-Awesome '-desktop\.zip$')" -o "$tmp/fa.zip"
-  unzip -j "$tmp/fa.zip" '*.otf' -d bin/fonts
+  unzip -j "$tmp/fa.zip" '*.otf' -d "bin/fonts"
 fi
