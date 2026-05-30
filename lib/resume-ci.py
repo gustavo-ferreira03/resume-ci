@@ -86,7 +86,7 @@ def period(item):
     value = item.get("period") or {}
     start = text(value, "from")
     end = text(value, "to")
-    return f"{start} -- {end}" if start and end else start or end
+    return f"{start} — {end}" if start and end else start or end
 
 
 def domain(url):
