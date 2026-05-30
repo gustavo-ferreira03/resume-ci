@@ -20,15 +20,14 @@ PDFs are written to `build/`.
 
 `make setup` handles everything: it installs Bun (if missing), Typst, and Font Awesome fonts into `lib/bin/`. The following system tools must already be present:
 
-```
-curl  jq  tar  unzip
+**macOS:**
+```bash
+brew install curl jq
 ```
 
-Windows users can run:
-
-```powershell
-lib/setup.ps1
-bun lib/src/resume-ci.ts
+**Ubuntu / Debian:**
+```bash
+sudo apt install curl jq tar unzip
 ```
 
 ## Commands
