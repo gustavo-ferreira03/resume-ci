@@ -102,7 +102,7 @@ Set any list section to `[]` to hide it from the PDF.
 | `meta.template` | no | Template name without `.typ`; defaults to `default` |
 | `meta.font` | no | Typst font family name; defaults to `New Computer Modern` |
 | `meta.output_filename` | yes | Letters, digits, `_`, and `-` only |
-| `meta.section_titles` | no | Override section labels for localization |
+| `meta.section_titles` | no | Section label overrides; each field defaults to English |
 | `summary` | no | Short profile summary shown below the header |
 | `experience` | yes | Work history entries |
 | `projects` | no | Defaults to `[]` |
@@ -135,7 +135,7 @@ meta:
 
 The workflow runs on pushes to `main` when resume, template, or builder files change.
 
-On push, it builds PDFs and uploads `build/*.pdf` as a workflow artifact. On manual workflow runs from the Actions tab, it also creates a GitHub Release tagged `build-<run_number>` with the generated PDFs attached.
+Every push creates a GitHub Release tagged `build-<run_number>` with the generated PDFs attached.
 
 ## Pulling Updates
 

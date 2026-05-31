@@ -4,58 +4,13 @@ import { parseArgs } from "node:util"
 import { mkdirSync, readdirSync, statSync } from "node:fs"
 import { join, relative, resolve } from "node:path"
 import { parse as parseYaml } from "yaml"
-import { z } from "zod"
-import { resumeSchema, role, education, type Resume } from "./schema.ts"
-import { rich, periodStr, extractDomain, extractUsername } from "./utils.ts"
+import { resumeSchema } from "./schema.ts"
 
-const ROOT      = resolve(import.meta.dir, "../..")
-const DATA_DIR  = join(ROOT, "resumes")
+const ROOT = resolve(import.meta.dir, "../..")
+const DATA_DIR = join(ROOT, "resumes")
 const BUILD_DIR = join(ROOT, "build")
-const FONT_DIR  = join(ROOT, "lib", "bin", "fonts")
-const TPL_DIR   = join(ROOT, "templates")
-
-
-const SECTION_TITLES = {
-  summary: "Professional Summary", experience: "Experience", projects: "Projects",
-  certifications: "Certifications", education: "Education", skills: "Technical Skills",
-}
-
-type ContactItem = { icon: string; solid: boolean; href: string; text: string }
-
-function buildContacts(p: Resume["personal"]): ContactItem[] {
-  return [
-    { icon: "envelope",  solid: true,  href: `mailto:${p.email}`, text: p.email },
-    p.phone        ? { icon: "phone",    solid: true,  href: "", text: p.phone } : null,
-    p.location     ? { icon: "",         solid: false, href: "", text: p.location } : null,
-    p.linkedin_url ? { icon: "linkedin", solid: false, href: p.linkedin_url, text: extractUsername(p.linkedin_url) } : null,
-    p.github_url   ? { icon: "github",   solid: false, href: p.github_url,   text: extractUsername(p.github_url) } : null,
-  ].filter((x): x is ContactItem => x !== null)
-}
-
-function buildRole(item: z.infer<typeof role>) {
-  const u = item.url ?? ""
-  return { company: rich(item.company), period: periodStr(item.period), role: rich(item.role), url: u, domain: u ? extractDomain(u) : "", bullets: item.bullets.map(rich) }
-}
-
-function buildContext(data: Resume): Record<string, unknown> {
-  return {
-    font: data.meta.font,
-    section_titles: { ...SECTION_TITLES, ...(data.meta.section_titles ?? {}) },
-    personal: { name: rich(data.personal.name), title: rich(data.personal.title) },
-    contact: buildContacts(data.personal),
-    summary: rich(data.summary ?? ""),
-    experience: data.experience.map(buildRole),
-    projects: data.projects.map(buildRole),
-    certifications: data.certifications.map(rich),
-    education: data.education.map(item => ({
-      institution: rich(item.institution), period: periodStr(item.period),
-      degree: rich(item.degree), location: rich(item.location),
-    })),
-    skills: data.skills.map(item => ({ label: rich(item.label), items: rich(item.items) })),
-    output_filename: data.meta.output_filename,
-  }
-}
-
+const FONT_DIR = join(ROOT, "lib", "bin", "fonts")
+const TPL_DIR = join(ROOT, "templates")
 
 class Builder {
   private constructor(
@@ -100,15 +55,14 @@ class Builder {
       throw new Error(`${path}: ${issue.message}`)
     }
 
-    const data = result.data
-    const templatePath = join(TPL_DIR, `${data.meta.template}.typ`)
+    const ctx = result.data
+    const templatePath = join(TPL_DIR, `${ctx.meta.template}.typ`)
     try { statSync(templatePath) } catch {
       throw new Error(`Template not found: ${templatePath}`)
     }
 
-    const ctx = buildContext(data)
     mkdirSync(this.outputDir, { recursive: true })
-    const pdf = join(this.outputDir, `${ctx.output_filename}.pdf`)
+    const pdf = join(this.outputDir, `${ctx.meta.output_filename}.pdf`)
 
     const proc = Bun.spawn(
       [Builder.findTypst(), "compile", "--root", ROOT, "--font-path", FONT_DIR,

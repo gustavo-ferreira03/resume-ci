@@ -86,13 +86,14 @@
   v(2pt)
 }
 
+#let meta = data.at("meta", default: (:))
 #set page(width: 210mm, height: 297mm, margin: (left: 0.7cm, top: 0.5cm, right: 0.7cm, bottom: 0.5cm))
-#set text(font: data.at("font", default: "New Computer Modern"), size: 10pt, fill: rgb("000000"))
+#set text(font: meta.at("font", default: "New Computer Modern"), size: 10pt, fill: rgb("000000"))
 #set par(leading: 0.48em, spacing: 0.35em, justify: false)
 #show link: set text(fill: rgb("000000"))
 
 #let personal = data.at("personal", default: (:))
-#let titles = data.at("section_titles", default: (:))
+#let titles = meta.at("section_titles", default: (:))
 
 #align(center)[
   #text(size: 24pt, weight: "bold")[#rich(personal.at("name", default: ()))] \
@@ -105,35 +106,35 @@
 #v(10pt)
 
 #if data.at("summary", default: ()).len() > 0 [
-  #section(titles.at("summary", default: "Professional Summary"))
+  #section(titles.summary)
   #rich(data.summary)
   #v(2pt)
 ]
 
 #if data.at("experience", default: ()).len() > 0 [
-  #section(titles.at("experience", default: "Experience"))
+  #section(titles.experience)
   #for item in data.experience { role-entry(item) }
 ]
 
 #if data.at("projects", default: ()).len() > 0 [
-  #section(titles.at("projects", default: "Projects"))
+  #section(titles.projects)
   #for item in data.projects { role-entry(item) }
 ]
 
 #if data.at("certifications", default: ()).len() > 0 [
-  #section(titles.at("certifications", default: "Certifications"))
+  #section(titles.certifications)
   #v(4pt)
   #bullet-list(data.certifications)
   #v(2pt)
 ]
 
 #if data.at("education", default: ()).len() > 0 [
-  #section(titles.at("education", default: "Education"))
+  #section(titles.education)
   #for item in data.education { education-entry(item) }
 ]
 
 #if data.at("skills", default: ()).len() > 0 [
-  #section(titles.at("skills", default: "Technical Skills"))
+  #section(titles.skills)
   #for item in data.skills [
     #strong(rich(item.at("label", default: ()))): #rich(item.at("items", default: ())) \
   ]
