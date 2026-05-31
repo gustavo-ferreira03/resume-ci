@@ -1,7 +1,6 @@
-.PHONY: build watch setup
+.PHONY: build watch setup sync
 
 BUN := $(shell command -v bun 2>/dev/null || printf "%s/.bun/bin/bun" "$$HOME")
-
 build:
 	$(BUN) lib/src/resume-ci.ts $(ARGS)
 
@@ -10,3 +9,6 @@ watch:
 
 setup:
 	bash lib/setup.sh
+
+sync:
+	bash lib/sync.sh
