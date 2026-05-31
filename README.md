@@ -38,6 +38,7 @@ sudo apt install curl jq tar unzip
 | `make build` | Build every resume in `resumes/` |
 | `make build ARGS="resumes/resume-en.yml"` | Build a single resume |
 | `make watch` | Watch all resumes and templates, rebuild on change |
+| `make sync` | Sync fork with upstream, keeping `resumes/` untouched |
 | `bun lib/src/resume-ci.ts --watch resumes/resume-en.yml` | Watch a single resume |
 | `bun lib/src/resume-ci.ts --output-dir dist` | Use a custom output directory |
 
@@ -139,9 +140,8 @@ Every push creates a GitHub Release tagged `build-<run_number>` with the generat
 
 ## Pulling Updates
 
-If you keep this repository as `upstream`:
-
 ```bash
-git fetch upstream
-git merge upstream/main
+make sync
 ```
+
+Merges upstream changes into your fork while keeping `resumes/` untouched.
