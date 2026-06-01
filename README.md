@@ -14,7 +14,7 @@ Ships with `CLAUDE.md` and `AGENTS.md` so AI agents know the schema and writing 
 
 Content uses the [JSON Resume](https://jsonresume.org/schema) schema. A `meta` block controls rendering: template, font, locale, and section titles.
 
-![Resume preview](.github/resume-preview.png)
+PDF examples are available in the [releases](https://github.com/gustavo-ferreira03/resume-ci/releases).
 
 ## Quick Start
 
