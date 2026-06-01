@@ -1,10 +1,10 @@
 # resume-ci
 
-Build PDF resumes from YAML with [Typst](https://typst.app).
+Write your resume in YAML, keep it in Git, and build PDFs with [Typst](https://typst.app) locally or in CI.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Write your resume content in YAML, version it with Git, and generate polished PDFs locally or through GitHub Actions. Fork or use this as a template repository — your content stays in plain text, your PDFs are always one command away.
+Resume content follows the [JSON Resume](https://jsonresume.org/schema) shape: `basics`, `work`, `education`, `skills`, `projects`, and the other standard sections. Use `meta` for resume-ci settings such as the template, font, output name, and section titles.
 
 ## Quick Start
 
@@ -18,14 +18,18 @@ PDFs are written to `build/`.
 
 ## Requirements
 
-`make setup` handles everything: it installs Bun (if missing), Typst, and Font Awesome fonts into `lib/bin/`. The following system tools must already be present:
+`make setup` installs Bun if needed, installs the Bun dependencies, downloads Typst, and places the Font Awesome fonts under `lib/bin/`.
+
+Install these system packages first:
 
 **macOS:**
+
 ```bash
 brew install curl jq
 ```
 
 **Ubuntu / Debian:**
+
 ```bash
 sudo apt install curl jq tar unzip
 ```
@@ -34,85 +38,139 @@ sudo apt install curl jq tar unzip
 
 | Command | Description |
 |---|---|
-| `make setup` | Install all dependencies |
+| `make setup` | Install local tooling |
+| `make schema` | Regenerate `lib/schema.json` for editor autocomplete |
 | `make build` | Build every resume in `resumes/` |
-| `make build ARGS="resumes/resume-en.yml"` | Build a single resume |
-| `make watch` | Watch all resumes and templates, rebuild on change |
-| `bun lib/src/resume-ci.ts --watch resumes/resume-en.yml` | Watch a single resume |
+| `make build ARGS="resumes/resume-en.yml"` | Build one resume |
+| `make watch` | Watch all resumes and templates |
+| `bun lib/src/resume-ci.ts --watch resumes/resume-en.yml` | Watch one resume |
 | `bun lib/src/resume-ci.ts --output-dir dist` | Use a custom output directory |
 
 ## YAML Structure
 
-Start from an example:
+Copy an example and edit it:
 
 ```bash
 cp resumes/resume-en.example.yml resumes/resume-en.yml
 ```
 
+Smallest useful shape:
+
 ```yaml
+# yaml-language-server: $schema=../lib/schema.json
+
 meta:
   template: default
   font: New Computer Modern
-  output_filename: resume_alex_morgan_en
+  output_filename: resume_john_doe_en
   section_titles:
-    experience: Experience
+    work: Experience
     projects: Projects
     education: Education
     skills: Technical Skills
 
-personal:
-  name: Alex Morgan
-  title: Full Stack Developer
-  email: alex.morgan@example.com
-  phone: "+1 555 000 0000"                              # optional
-  location: "City, State"                               # optional
-  linkedin_url: https://linkedin.com/in/alex-morgan     # optional
-  github_url: https://github.com/alex-morgan             # optional
+basics:
+  name: John Doe
+  label: Full Stack Developer
+  email: john.doe@example.invalid
+  summary: Short profile text.
+  profiles:
+    - network: LinkedIn
+      url: https://linkedin.example.invalid/in/john-doe
+    - network: GitHub
+      url: https://git.example.invalid/john-doe
 
-summary: Short profile text.                            # optional
-
-experience:
-  - company: Example Corp
-    role: Full Stack Developer
-    period: { from: Jan 2022, to: Present }
-    url: https://example.com                            # optional
-    bullets:
+work:
+  - name: Example Corp
+    position: Full Stack Developer
+    startDate: 2022-01
+    endDate: 2024-06
+    url: https://company.example.invalid
+    highlights:
       - Built **REST APIs** with **Node.js** and **PostgreSQL**.
 
-projects: []        # same shape as experience; company = project name
-certifications: []  # list of plain strings
-
-education:
-  - institution: State University
-    degree: Bachelor of Science in Computer Science
-    location: City, State
-    period: { from: Aug 2018, to: May 2022 }
-
-skills:
-  - label: Backend
-    items: TypeScript, Node.js, PostgreSQL
+projects: []
+certificates: []
+education: []
+skills: []
+languages: []
 ```
 
-Set any list section to `[]` to hide it from the PDF.
+Use `[]` to hide a list-backed section. For current roles, omit `endDate`; the PDF will show `Present`.
 
-### Field Reference
+> Writing the resume content? [`AGENTS.md`](AGENTS.md) covers strong, honest bullets: STAR structure, evidence standards, and AI-writing tells to avoid.
+
+## JSON Resume Compatibility
+
+The YAML uses JSON Resume field names:
+
+| JSON Resume field | Rendered as |
+|---|---|
+| `basics.name` | Header name |
+| `basics.label` | Header title |
+| `basics.email`, `phone`, `url`, `location`, `profiles` | Contact row |
+| `basics.summary` | Summary section |
+| `work` | Experience section |
+| `work[].name` | Company |
+| `work[].position` | Role |
+| `work[].highlights` | Bullets |
+| `volunteer` | Volunteer section |
+| `projects` | Projects section |
+| `projects[].name` | Project name |
+| `projects[].roles` | Project role line |
+| `projects[].highlights` | Bullets |
+| `awards` | Awards section |
+| `certificates` | Certifications section |
+| `publications` | Publications section |
+| `education` | Education section |
+| `skills[].name` | Skill group label |
+| `skills[].keywords` | Skill list |
+| `languages` | Languages section |
+| `interests` | Interests section |
+| `references` | References section |
+
+Dates must use JSON Resume's ISO-style format: `YYYY`, `YYYY-MM`, or `YYYY-MM-DD` for `startDate`, `endDate`, `date`, and similar fields.
+
+Extra JSON Resume fields pass validation, but the default template only renders fields it knows about.
+
+## Editor Autocomplete
+
+Keep this comment at the top of each resume to get autocomplete and inline validation in editors with a YAML language server, such as VS Code or Neovim:
+
+```yaml
+# yaml-language-server: $schema=../lib/schema.json
+```
+
+`lib/schema.json` is generated from `lib/src/schema.ts`. Do not edit it by hand. If you change the Zod schema, run `make schema`.
+
+## `meta` Extension
+
+`meta` holds build and presentation settings. JSON Resume already allows `meta`, so resume-ci adds its own keys there.
 
 | Field | Required | Notes |
 |---|---|---|
 | `meta.template` | no | Template name without `.typ`; defaults to `default` |
 | `meta.font` | no | Typst font family name; defaults to `New Computer Modern` |
-| `meta.output_filename` | yes | Letters, digits, `_`, and `-` only |
-| `meta.section_titles` | no | Section label overrides; each field defaults to English |
-| `summary` | no | Short profile summary shown below the header |
-| `experience` | yes | Work history entries |
-| `projects` | no | Defaults to `[]` |
-| `certifications` | no | Defaults to `[]` |
-| `education` | yes | Education entries |
-| `skills` | yes | Grouped skill rows |
+| `meta.output_filename` | no | PDF file name without `.pdf`; generated from `basics.name` if omitted |
+| `meta.section_titles` | no | Custom section labels |
+| `meta.canonical`, `meta.version`, `meta.lastModified` | no | JSON Resume metadata fields |
 
-### Bullet Formatting
+Section title keys use JSON Resume section names:
 
-Bullets and text fields support a small Markdown subset:
+```yaml
+meta:
+  section_titles:
+    summary: Professional Summary
+    work: Experience
+    projects: Projects
+    certificates: Certifications
+    education: Education
+    skills: Technical Skills
+```
+
+## Bullet Formatting
+
+Bullets and text fields support two Markdown-style markers:
 
 | Syntax | Output |
 |---|---|
@@ -121,25 +179,24 @@ Bullets and text fields support a small Markdown subset:
 
 ## Templates
 
-Templates are single Typst files in `templates/`. Select one from your YAML:
+Templates are single Typst files in `templates/`. Pick one in YAML:
 
 ```yaml
 meta:
   template: my-template  # resolves to templates/my-template.typ
 ```
 
-> [!NOTE]
-> `meta.font` must be a Typst font family name.
+`meta.font` must be a Typst font family name.
 
 ## GitHub Actions
 
 The workflow runs on pushes to `main` when resume, template, or builder files change.
 
-Every push creates a GitHub Release tagged `build-<run_number>` with the generated PDFs attached.
+Each push creates a GitHub Release tagged `build-<run_number>` with the generated PDFs attached.
 
 ## Pulling Updates
 
-If you keep this repository as `upstream`:
+If this repository is your `upstream` remote:
 
 ```bash
 git fetch upstream

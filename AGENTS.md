@@ -4,26 +4,27 @@ Instructions for agents creating or editing resumes in this repository.
 
 ## Project Context
 
-- Resume content lives in `resumes/*.yml`.
-- The builder CLI lives in `lib/src/resume-ci.ts`.
-- The Zod schema lives in `lib/src/schema.ts`.
-- Shared rich-text and formatting helpers live in `lib/src/utils.ts`.
-- Templates are single Typst files: `templates/<name>.typ`.
-- Setup scripts install Bun dependencies, Typst, and Font Awesome desktop fonts into `lib/bin/`.
-- GitHub Actions builds PDFs on push and uploads them as workflow artifacts; manual workflow runs also create a GitHub Release.
+- Resume content lives in `resumes/*.yml`, one file per resume.
+- The example resumes (`resumes/*.example.yml`) are the canonical reference for valid shape.
+- The schema that validates resumes lives in `lib/src/schema.ts`; `lib/schema.json` is generated from it for editor autocomplete.
+- Templates are single Typst files: `templates/<name>.typ`. Pick one with `meta.template`.
+
+Your job in this repo is resume **content**: strong, honest, well-structured bullets that survive a recruiter and a hiring manager. The build tooling is documented in `README.md`.
 
 ## YAML Rules
 
-- Use the shape from `resumes/*.example.yml`.
-- Keep top-level keys stable: `meta`, `personal`, `summary`, `experience`, `projects`, `certifications`, `education`, `skills`.
+- Use the JSON Resume-compatible shape from `resumes/*.example.yml`.
+- Keep top-level content keys aligned with JSON Resume: `basics`, `work`, `volunteer`, `education`, `awards`, `certificates`, `publications`, `skills`, `languages`, `interests`, `references`, `projects`.
 - Put build and presentation settings under `meta`.
 - Use `meta.template` for the template name without `.typ`; default is `default`.
 - Use a real Typst font name in `meta.font`; default examples use `New Computer Modern`.
 - Use only letters, digits, `_`, and `-` in `meta.output_filename`.
-- Use `meta.section_titles` for translated or customized section labels.
+- Use `meta.section_titles` for translated or customized section labels; keys should use JSON Resume section names (`work`, `certificates`, etc.).
+- Use JSON Resume date strings: `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`. Omit `endDate` for current roles.
 - Use `[]` to hide any list-backed section; keep required keys present unless the schema supplies a default.
 - Do not add unsupported fields unless `lib/src/schema.ts` and the relevant template are updated together.
 - Preserve Markdown-style emphasis only where useful: `**bold**` and `_italic_`.
+- Keep the `# yaml-language-server: $schema=../lib/schema.json` comment in example resumes.
 
 ## STAR Method
 
@@ -99,65 +100,16 @@ Prefer:
 6. Keep the strongest and most relevant evidence near the top.
 7. Validate the YAML and run the builder when changing resume files.
 
-## Commands
+## Validate Your Work
 
-Run setup first if `lib/bin/typst` or `lib/bin/fonts` are missing:
-
-```bash
-make setup
-```
-
-Build all resumes:
+After editing a resume, build it and confirm it compiles cleanly:
 
 ```bash
-make build
+make build ARGS="resumes/my-resume.yml"   # one resume
+make build                                # all resumes
 ```
 
-Build one resume:
-
-```bash
-make build ARGS="resumes/my-resume.yml"
-```
-
-Watch all resumes:
-
-```bash
-make watch
-```
-
-Watch one resume:
-
-```bash
-bun lib/src/resume-ci.ts --watch resumes/my-resume.yml
-```
-
-Use a non-default template by setting it in YAML:
-
-```yaml
-meta:
-  template: my-template
-```
-
-## Builder And Template Boundaries
-
-- `lib/src/resume-ci.ts` owns orchestration: finding resume files, loading YAML, resolving templates, and calling Typst.
-- `lib/src/schema.ts` owns input validation and normalization into the Typst JSON context.
-- `templates/<name>.typ` owns presentation only: page size, margins, spacing, typography, sections, lists, links, and icons.
-- The builder passes normalized data to Typst through `sys.inputs.data`.
-- Do not make Typst templates load YAML directly.
-- Do not duplicate schema or normalization logic inside Typst templates.
-- When adding a field, update `lib/src/schema.ts`, the relevant `templates/<name>.typ`, examples, and docs together.
-
-## Section Guidance
-
-- `meta`: keep template, font, output filename, and section labels accurate.
-- `personal`: keep contact fields accurate and complete.
-- `summary`: keep concise and specific; avoid generic positioning language.
-- `experience`: prioritize 3-6 strong bullets per role when possible.
-- `projects`: include projects only when they add relevant proof not already covered by experience.
-- `certifications`: include only credentials that matter for the target role.
-- `education`: keep concise unless the credential is central to the target role.
-- `skills`: group real skills by category; do not keyword-stuff tools the candidate cannot discuss.
+If `make build` reports a missing `lib/bin/typst` or `lib/bin/fonts`, run `make setup` once first. See `README.md` for the full command reference.
 
 ## Final Review Checklist
 
@@ -170,5 +122,5 @@ Before finishing a resume edit, verify:
 - Bullets start with strong action verbs.
 - The language is plain and specific.
 - No obvious AI writing patterns remain.
-- The target role is clear from the title, summary if present, and top bullets.
+- The target role is clear from `basics.label`, `basics.summary` if present, and top highlights.
 - `meta.output_filename` is valid.
