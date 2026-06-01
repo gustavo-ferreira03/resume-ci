@@ -153,6 +153,8 @@ Keep this comment at the top of each resume to get autocomplete and inline valid
 | `meta.template` | no | Template name without `.typ`; defaults to `default` |
 | `meta.font` | no | Typst font family name; defaults to `New Computer Modern` |
 | `meta.output_filename` | no | PDF file name without `.pdf`; generated from `basics.name` if omitted |
+| `meta.locale` | no | BCP 47 locale for date formatting (e.g. `en`, `pt-BR`, `es`); defaults to `en` |
+| `meta.present_label` | no | Label for ongoing roles with no `endDate`; derived from `locale` if omitted (`Present`, `Atual`, `Actualidad`) |
 | `meta.section_titles` | no | Custom section labels |
 | `meta.canonical`, `meta.version`, `meta.lastModified` | no | JSON Resume metadata fields |
 
