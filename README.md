@@ -197,22 +197,23 @@ Each push creates a GitHub Release tagged `build-<run_number>` with the generate
 
 ## Syncing With Upstream
 
-If you started your resume from this repository, `make sync` pulls the latest tooling and template without disturbing your content:
+If you started your resume from this repository, `make sync` merges the latest upstream changes into your fork:
 
 ```bash
 make sync
 ```
 
-It mirrors a small set of **upstream-owned** paths and leaves everything else alone:
+It runs a real 3-way merge (`git merge upstream/main`) and handles the two predictable conflict types automatically:
 
-| Path | Owner | On sync |
-|---|---|---|
-| `lib/`, `.github/`, `Makefile`, `templates/default.typ` | upstream | overwritten to match upstream (edits, additions, and deletions all propagate) |
-| `resumes/`, your own `templates/*.typ`, the docs | you | never touched |
+- **Files you deleted that upstream still edits** (e.g. the example resumes) — kept deleted. Your deletion wins.
+- **Engine files both sides added** (e.g. `lib/sync.sh` on first bootstrap) — upstream's version wins.
 
-Because it copies paths rather than merging, it can't raise a conflict on your resumes or a customized template. Changes land **staged** for you to review with `git diff --cached` and commit when ready — nothing is committed automatically.
+If upstream and your fork both edited the same lines in a file, sync stops and shows which files need manual resolution:
 
-Two notes:
+```
+Conflicts to resolve manually:
+  templates/default.typ
+Fix them, then: git merge --continue
+```
 
-- `make sync` first adds an `upstream` remote pointing at this repository if you don't have one, then refuses to run if any upstream-owned path has uncommitted changes (so it never discards local engine edits). Resume edits never block it.
-- To change what sync manages, edit the `SYNC_PATHS` list at the top of `lib/sync.sh` — add a path to let sync own it, or remove one to take ownership yourself.
+When the merge is clean, a merge commit is created automatically. Commit or stash all local changes before running `make sync` — git merge requires a clean working tree.
