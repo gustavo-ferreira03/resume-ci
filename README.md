@@ -18,6 +18,20 @@ PDF examples are available in the [releases](https://github.com/gustavo-ferreira
 
 ## Quick Start
 
+You'll need these system packages installed:
+
+**macOS:**
+
+```bash
+brew install curl jq
+```
+
+**Ubuntu / Debian:**
+
+```bash
+sudo apt install curl jq tar unzip
+```
+
 To keep your resume private, create a private repository on GitHub, then:
 
 ```bash
@@ -36,7 +50,7 @@ make setup
 cp resumes/resume-en.example.yml resumes/resume-en.yml
 ```
 
-Edit `resumes/resume-en.yml` with your information, then:
+Edit `resumes/resume-en.yml` with your information. When ready:
 
 ```bash
 make build
@@ -44,13 +58,13 @@ make build
 
 PDFs land in `build/`. Push to `main` and GitHub Actions builds and publishes them to a GitHub Release automatically.
 
-To pull tooling and template updates later, commit or stash your changes, then:
+To pull tooling and template updates later, `make sync` merges upstream changes without touching your resumes. Commit or stash your changes first, then:
 
 ```bash
 make sync
 ```
 
-Merges upstream changes without touching your resumes. If a conflict needs manual resolution, sync stops and tells you which files to fix before running:
+If a conflict needs manual resolution, sync stops and shows which files to fix. Resume with:
 
 ```bash
 git merge --continue
@@ -58,24 +72,6 @@ git merge --continue
 
 > [!TIP]
 > See [`AGENTS.md`](AGENTS.md) for guidance on writing strong resume bullets: STAR structure, evidence standards, and AI-writing patterns to avoid.
-
-## Requirements
-
-`make setup` downloads Bun, Typst, and Font Awesome fonts into `lib/bin/` and installs dependencies.
-
-Install these system packages first:
-
-**macOS:**
-
-```bash
-brew install curl jq
-```
-
-**Ubuntu / Debian:**
-
-```bash
-sudo apt install curl jq tar unzip
-```
 
 ## Commands
 
