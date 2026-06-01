@@ -20,6 +20,8 @@ Your job in this repo is resume **content**: strong, honest, well-structured bul
 - Use a real Typst font name in `meta.font`; default examples use `New Computer Modern`.
 - Use only letters, digits, `_`, and `-` in `meta.output_filename`.
 - Use `meta.section_titles` for translated or customized section labels; keys should use JSON Resume section names (`work`, `certificates`, etc.).
+- Set `meta.locale` to the BCP 47 locale of the resume language (`en`, `pt-BR`, `es`, etc.). This controls date formatting (`2024-09` → `Sep 2024` in EN, `Set 2024` in PT-BR) and the default present-role label (`Present`, `Atual`, `Actualidad`). Always set it for non-English resumes.
+- Use `meta.present_label` only when the locale's default label is wrong for the context.
 - Use JSON Resume date strings: `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`. Omit `endDate` for current roles.
 - Use `[]` to hide any list-backed section; keep required keys present unless the schema supplies a default.
 - Do not add unsupported fields unless `lib/src/schema.ts` and the relevant template are updated together.

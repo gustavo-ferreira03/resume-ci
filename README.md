@@ -158,6 +158,14 @@ Keep this comment at the top of each resume to get autocomplete and inline valid
 | `meta.section_titles` | no | Custom section labels |
 | `meta.canonical`, `meta.version`, `meta.lastModified` | no | JSON Resume metadata fields |
 
+`meta.locale` controls how dates are formatted throughout the PDF. `2024-09` becomes `Sep 2024` in English, `Set 2024` in Portuguese, and `Sep 2024` in Spanish — month name taken from the locale, year appended. It also sets the default label for ongoing roles: `Present`, `Atual`, or `Actualidad`. Override that label with `meta.present_label` if needed.
+
+```yaml
+meta:
+  locale: pt-BR          # Sep 2024 → Set 2024, omitted endDate → Atual
+  present_label: Atual   # explicit override (optional when locale is set)
+```
+
 Section title keys use JSON Resume section names:
 
 ```yaml
