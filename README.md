@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Maintaining a resume in Word or Google Docs means fighting content and formatting at the same time. resume-ci keeps them separate: content in YAML files versioned in Git, layout in a Typst template you never have to touch if you don't want to. A simple `make build` run gives you a clean PDF resume.
+Maintaining a resume in Word or Google Docs means fighting content and formatting at the same time. resume-ci keeps them separate: content in YAML files versioned in Git, layout in a Typst template. Run `make build` locally, or push to `main` and GitHub Actions builds the PDFs and publishes them to a release.
 
 Ships with `CLAUDE.md` and `AGENTS.md` so AI agents know the schema and writing standards. Ask your favorite AI agent to rewrite a section and the PDF layout stays exactly as it should.
 
@@ -14,7 +14,7 @@ Content uses the [JSON Resume](https://jsonresume.org/schema) schema. A `meta` b
 
 ## Quick Start
 
-To keep your resume private, create a new private repository on GitHub, then:
+To keep your resume private, create a private repository on GitHub, then:
 
 ```bash
 git clone https://github.com/gustavo-ferreira03/resume-ci.git
@@ -32,25 +32,28 @@ make setup
 cp resumes/resume-en.example.yml resumes/resume-en.yml
 ```
 
-In both cases, edit `resumes/resume-en.yml` with your information, then:
+Edit `resumes/resume-en.yml` with your information, then:
 
 ```bash
 make build
 ```
 
-PDFs are written to `build/`. Push to `main` and GitHub Actions builds them automatically, attaching the PDFs to a GitHub Release.
+PDFs land in `build/`. Push to `main` and GitHub Actions builds and publishes them to a GitHub Release automatically.
 
-To pull tooling and template updates from this repository into your repo later, commit or stash your changes and run:
+To pull tooling and template updates later, commit or stash your changes, then:
 
 ```bash
 make sync
 ```
 
-Merges upstream changes. Your resumes are never touched. If a conflict requires manual resolution, sync stops and lists the files before running:
+Merges upstream changes without touching your resumes. If a conflict needs manual resolution, sync stops and tells you which files to fix before running:
 
 ```bash
 git merge --continue
 ```
+
+> [!TIP]
+> See [`AGENTS.md`](AGENTS.md) for guidance on writing strong resume bullets: STAR structure, evidence standards, and AI-writing patterns to avoid.
 
 ## Requirements
 
@@ -100,6 +103,7 @@ meta:
   template: default
   font: New Computer Modern
   output_filename: resume_john_doe_en
+  locale: en
   section_titles:
     work: Experience
     projects: Projects
@@ -133,77 +137,65 @@ skills: []
 languages: []
 ```
 
-Use `[]` to hide a list-backed section. For current roles, omit `endDate`; the PDF will show `Present`.
-
-> Writing the resume content? [`AGENTS.md`](AGENTS.md) covers strong, honest bullets: STAR structure, evidence standards, and AI-writing tells to avoid.
+Use `[]` to hide any list-backed section. Omit `endDate` for current roles; the PDF shows the locale's present label.
 
 ## JSON Resume Compatibility
 
-The YAML uses JSON Resume field names:
+The YAML uses [JSON Resume](https://jsonresume.org/schema) field names:
 
-| JSON Resume field | Rendered as |
+| Field | Rendered as |
 |---|---|
 | `basics.name` | Header name |
 | `basics.label` | Header title |
 | `basics.email`, `phone`, `url`, `location`, `profiles` | Contact row |
 | `basics.summary` | Summary section |
-| `work` | Experience section |
-| `work[].name` | Company |
-| `work[].position` | Role |
-| `work[].highlights` | Bullets |
-| `volunteer` | Volunteer section |
-| `projects` | Projects section |
-| `projects[].name` | Project name |
-| `projects[].roles` | Project role line |
-| `projects[].highlights` | Bullets |
-| `awards` | Awards section |
-| `certificates` | Certifications section |
-| `publications` | Publications section |
-| `education` | Education section |
-| `skills[].name` | Skill group label |
-| `skills[].keywords` | Skill list |
-| `languages` | Languages section |
-| `interests` | Interests section |
-| `references` | References section |
+| `work[].name`, `position`, `highlights` | Experience entries |
+| `volunteer[].organization`, `position`, `highlights` | Volunteer entries |
+| `projects[].name`, `roles`, `highlights` | Project entries |
+| `awards[].title`, `awarder` | Award entries |
+| `certificates[].name`, `issuer` | Certification entries |
+| `publications[].name`, `publisher` | Publication entries |
+| `education[].institution`, `studyType`, `area` | Education entries |
+| `skills[].name`, `keywords` | Skill groups |
+| `languages[].language`, `fluency` | Language entries |
+| `interests[].name`, `keywords` | Interest entries |
+| `references[].name`, `reference` | Reference entries |
 
-Dates must use JSON Resume's ISO-style format: `YYYY`, `YYYY-MM`, or `YYYY-MM-DD` for `startDate`, `endDate`, `date`, and similar fields.
+Dates use ISO-style format: `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`.
 
-Extra JSON Resume fields pass validation, but the default template only renders fields it knows about.
+Extra JSON Resume fields pass validation but may not render in the default template.
 
 ## Editor Autocomplete
 
-Add this to the top of any resume file for autocomplete and inline validation (VS Code, Neovim, any editor with a YAML language server):
+Add this comment to the top of any resume file for inline validation and autocomplete in VS Code, Neovim, or any editor with a YAML language server:
 
 ```yaml
 # yaml-language-server: $schema=../lib/schema.json
 ```
 
-`lib/schema.json` is generated from `lib/src/schema.ts`. Do not edit it by hand. If you change the Zod schema, run:
+> [!NOTE]
+> `lib/schema.json` is generated from `lib/src/schema.ts`. Do not edit it by hand. After changing the Zod schema, run `make schema`.
 
-```bash
-make schema
-```
-
-## `meta` Extension
+## `meta` Reference
 
 `meta` extends JSON Resume's own `meta` object with build and presentation settings.
 
-| Field | Required | Notes |
+| Field | Default | Notes |
 |---|---|---|
-| `meta.template` | no | Template name without `.typ`; defaults to `default` |
-| `meta.font` | no | Typst font family name; defaults to `New Computer Modern` |
-| `meta.output_filename` | no | PDF file name without `.pdf`; generated from `basics.name` if omitted |
-| `meta.locale` | no | BCP 47 locale for date formatting (e.g. `en`, `pt-BR`, `es`); defaults to `en` |
-| `meta.present_label` | no | Label for ongoing roles with no `endDate`; derived from `locale` if omitted (`Present`, `Atual`, `Actualidad`) |
-| `meta.section_titles` | no | Custom section labels |
-| `meta.canonical`, `meta.version`, `meta.lastModified` | no | JSON Resume metadata fields |
+| `meta.template` | `default` | Template name without `.typ` |
+| `meta.font` | `New Computer Modern` | Typst font family name |
+| `meta.output_filename` | derived from `basics.name` | PDF filename without `.pdf` |
+| `meta.locale` | `en` | BCP 47 locale for date formatting (`en`, `pt-BR`, `es`, …) |
+| `meta.present_label` | derived from `locale` | Label for roles with no `endDate` (`Present`, `Atual`, `Actualidad`) |
+| `meta.section_titles` | section defaults | Custom section labels |
+| `meta.canonical`, `meta.version`, `meta.lastModified` | — | Standard JSON Resume metadata |
 
-`meta.locale` formats dates across the PDF — `2024-09` renders as `Sep 2024` in `en` and `Set 2024` in `pt-BR` — and sets the default open-role label (`Present`, `Atual`, `Actualidad`). Use `meta.present_label` to override it.
+`meta.locale` formats dates across the PDF (`2024-09` renders as `Sep 2024` in `en` and `Set 2024` in `pt-BR`) and sets the default open-role label. Use `meta.present_label` to override it.
 
 ```yaml
 meta:
-  locale: pt-BR          # Sep 2024 → Set 2024, omitted endDate → Atual
-  present_label: Atual   # explicit override (optional when locale is set)
+  locale: pt-BR
+  present_label: Atual
 ```
 
 Section title keys use JSON Resume section names:
@@ -221,7 +213,7 @@ meta:
 
 ## Bullet Formatting
 
-Bullets and text fields support two Markdown-style markers:
+Bullets and text fields support:
 
 | Syntax | Output |
 |---|---|
@@ -234,11 +226,11 @@ Templates are single Typst files in `templates/`. Pick one in YAML:
 
 ```yaml
 meta:
-  template: my-template  # resolves to templates/my-template.typ
+  template: my-template
 ```
 
-`meta.font` must be a Typst font family name.
+`meta.font` must be a valid Typst font family name.
 
 ## GitHub Actions
 
-The workflow triggers on pushes to `main` when resume, template, or builder files change. Releases are tagged `build-<run_number>`.
+The workflow triggers on pushes to `main` when resume, template, or builder files change. Each run creates a GitHub Release tagged `build-<run_number>` with the PDFs attached.
