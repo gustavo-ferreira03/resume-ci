@@ -1,12 +1,12 @@
 # resume-ci
 
-> Resume generator for developers. Content in YAML, layout in Typst — edit one, the other doesn't move.
+> Simple resume generator built for developers.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Maintaining a resume in Word or Google Docs means fighting content and formatting at the same time. resume-ci keeps them separate: content in YAML files versioned in Git, layout in a Typst template. Run `make build`, get a clean PDF.
+Maintaining a resume in Word or Google Docs means fighting content and formatting at the same time. resume-ci keeps them separate: content in YAML files versioned in Git, layout in a Typst template you never have to touch if you don't want to. A simple `make build` run gives you a clean PDF resume.
 
-Ships with `CLAUDE.md` and `AGENTS.md` so AI agents know the schema and writing standards. Ask your AI agent to rewrite a section and the PDF layout stays untouched.
+Ships with `CLAUDE.md` and `AGENTS.md` so AI agents know the schema and writing standards. Ask your favorite AI agent to rewrite a section and the PDF layout stays exactly as it should.
 
 Content uses the [JSON Resume](https://jsonresume.org/schema) schema. A `meta` block controls rendering: template, font, locale, and section titles.
 
@@ -38,7 +38,7 @@ In both cases, edit `resumes/resume-en.yml` with your information, then:
 make build
 ```
 
-PDFs are written to `build/`.
+PDFs are written to `build/`. Push to `main` and GitHub Actions builds them automatically, attaching the PDFs to a GitHub Release.
 
 To pull tooling and template updates from this repository into your repo later, commit or stash your changes and run:
 
@@ -241,6 +241,4 @@ meta:
 
 ## GitHub Actions
 
-The workflow runs on pushes to `main` when resume, template, or builder files change.
-
-Each push creates a GitHub Release tagged `build-<run_number>` with the generated PDFs attached.
+The workflow triggers on pushes to `main` when resume, template, or builder files change. Releases are tagged `build-<run_number>`.
