@@ -4,6 +4,7 @@ meta:
   template: default
   font: New Computer Modern
   output_filename: curriculo_john_doe_ptbr
+  locale: pt-BR
   section_titles:
     summary: Resumo Profissional
     work: Experiência Profissional

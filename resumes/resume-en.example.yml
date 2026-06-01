@@ -4,6 +4,7 @@ meta:
   template: default
   font: New Computer Modern
   output_filename: resume_john_doe_en
+  locale: en
   section_titles:
     summary: Professional Summary
     work: Experience
