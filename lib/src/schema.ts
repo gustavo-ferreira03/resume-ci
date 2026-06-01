@@ -1,95 +1,391 @@
 import { z } from "zod"
 import { rich, periodStr, extractDomain, extractUsername } from "./utils.ts"
 
-const role = z.object({
-  company: z.string().min(1),
-  role: z.string().min(1),
-  bullets: z.array(z.string()),
-  period: z.object({ from: z.string().min(1), to: z.string().min(1) }).optional(),
+const isoDate = z.string().regex(
+  /^([1-2][0-9]{3}-[0-1][0-9]-[0-3][0-9]|[1-2][0-9]{3}-[0-1][0-9]|[1-2][0-9]{3})$/,
+  "Use YYYY, YYYY-MM, or YYYY-MM-DD",
+)
+
+const profile = z.looseObject({
+  network: z.string().optional(),
+  username: z.string().optional(),
   url: z.url().optional(),
 })
 
-const education = z.object({
-  institution: z.string().min(1),
-  degree: z.string().min(1),
-  location: z.string().min(1),
-  period: z.object({ from: z.string().min(1), to: z.string().min(1) }).optional(),
+const location = z.looseObject({
+  address: z.string().optional(),
+  postalCode: z.string().optional(),
+  city: z.string().optional(),
+  countryCode: z.string().optional(),
+  region: z.string().optional(),
 })
 
-export const resumeSchema = z.object({
-  summary: z.string().min(1).optional(),
-  meta: z.object({
-    template: z.string().default("default"),
-    font: z.string().trim().min(1).default("New Computer Modern"),
-    output_filename: z.string().regex(/^[A-Za-z0-9_-]+$/),
-    section_titles: z.object({
-      summary:        z.string().min(1).default("Professional Summary"),
-      experience:     z.string().min(1).default("Experience"),
-      projects:       z.string().min(1).default("Projects"),
-      certifications: z.string().min(1).default("Certifications"),
-      education:      z.string().min(1).default("Education"),
-      skills:         z.string().min(1).default("Technical Skills"),
-    }).default({
-      summary:        "Professional Summary",
-      experience:     "Experience",
-      projects:       "Projects",
-      certifications: "Certifications",
-      education:      "Education",
-      skills:         "Technical Skills",
-    }),
-  }),
-  personal: z.object({
-    name: z.string().min(1),
-    title: z.string().min(1),
-    email: z.email(),
-    phone: z.string().min(1).optional(),
-    location: z.string().min(1).optional(),
-    linkedin_url: z.url().optional(),
-    github_url: z.url().optional(),
-  }),
-  experience: z.array(role),
-  projects: z.array(role).default([]),
-  certifications: z.array(z.string()).default([]),
-  education: z.array(education),
-  skills: z.array(z.object({ label: z.string().min(1), items: z.string().min(1) })),
-}).transform(data => {
-  const p = data.personal
+const sectionTitles = z.looseObject({
+  summary: z.string().min(1).default("Professional Summary"),
+  work: z.string().min(1).default("Experience"),
+  volunteer: z.string().min(1).default("Volunteer"),
+  projects: z.string().min(1).default("Projects"),
+  awards: z.string().min(1).default("Awards"),
+  certificates: z.string().min(1).default("Certifications"),
+  publications: z.string().min(1).default("Publications"),
+  education: z.string().min(1).default("Education"),
+  skills: z.string().min(1).default("Technical Skills"),
+  languages: z.string().min(1).default("Languages"),
+  interests: z.string().min(1).default("Interests"),
+  references: z.string().min(1).default("References"),
+}).prefault({})
 
-  const toRole = (item: z.infer<typeof role>) => {
+const meta = z.looseObject({
+  template: z.string().default("default"),
+  font: z.string().trim().min(1).default("New Computer Modern"),
+  output_filename: z.string().regex(/^[A-Za-z0-9_-]+$/).optional(),
+  section_titles: sectionTitles,
+  canonical: z.url().optional(),
+  version: z.string().optional(),
+  lastModified: z.string().optional(),
+}).prefault({})
+
+const basics = z.looseObject({
+  name: z.string().optional(),
+  label: z.string().optional(),
+  image: z.string().optional(),
+  email: z.email().optional(),
+  phone: z.string().optional(),
+  url: z.url().optional(),
+  summary: z.string().optional(),
+  location: location.optional(),
+  profiles: z.array(profile).default([]),
+}).prefault({})
+
+const datedEntry = z.looseObject({
+  url: z.url().optional(),
+  startDate: isoDate.optional(),
+  endDate: isoDate.optional(),
+  summary: z.string().optional(),
+  highlights: z.array(z.string()).default([]),
+})
+
+const workEntry = datedEntry.extend({
+  name: z.string().optional(),
+  location: z.string().optional(),
+  description: z.string().optional(),
+  position: z.string().optional(),
+})
+
+const projectEntry = datedEntry.extend({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  keywords: z.array(z.string()).default([]),
+  roles: z.array(z.string()).default([]),
+  entity: z.string().optional(),
+  type: z.string().optional(),
+})
+
+const volunteerEntry = datedEntry.extend({
+  organization: z.string().optional(),
+  position: z.string().optional(),
+})
+
+const educationEntry = z.looseObject({
+  institution: z.string().optional(),
+  url: z.url().optional(),
+  area: z.string().optional(),
+  studyType: z.string().optional(),
+  startDate: isoDate.optional(),
+  endDate: isoDate.optional(),
+  score: z.string().optional(),
+  courses: z.array(z.string()).default([]),
+  location: z.string().optional(),
+})
+
+const certificateEntry = z.looseObject({
+  name: z.string().optional(),
+  date: isoDate.optional(),
+  issuer: z.string().optional(),
+  url: z.url().optional(),
+})
+
+const awardEntry = z.looseObject({
+  title: z.string().optional(),
+  date: isoDate.optional(),
+  awarder: z.string().optional(),
+  summary: z.string().optional(),
+})
+
+const publicationEntry = z.looseObject({
+  name: z.string().optional(),
+  publisher: z.string().optional(),
+  releaseDate: isoDate.optional(),
+  url: z.url().optional(),
+  summary: z.string().optional(),
+})
+
+const skillEntry = z.looseObject({
+  name: z.string().optional(),
+  level: z.string().optional(),
+  keywords: z.array(z.string()).default([]),
+})
+
+const languageEntry = z.looseObject({
+  language: z.string().optional(),
+  fluency: z.string().optional(),
+})
+
+const interestEntry = z.looseObject({
+  name: z.string().optional(),
+  keywords: z.array(z.string()).default([]),
+})
+
+const referenceEntry = z.looseObject({
+  name: z.string().optional(),
+  reference: z.string().optional(),
+})
+
+export const resumeInputSchema = z.looseObject({
+  meta,
+  basics,
+  work: z.array(workEntry).default([]),
+  volunteer: z.array(volunteerEntry).default([]),
+  education: z.array(educationEntry).default([]),
+  awards: z.array(awardEntry).default([]),
+  certificates: z.array(certificateEntry).default([]),
+  publications: z.array(publicationEntry).default([]),
+  skills: z.array(skillEntry).default([]),
+  languages: z.array(languageEntry).default([]),
+  interests: z.array(interestEntry).default([]),
+  references: z.array(referenceEntry).default([]),
+  projects: z.array(projectEntry).default([]),
+})
+
+type Location = z.infer<typeof location>
+type WorkEntry = z.infer<typeof workEntry>
+type ProjectEntry = z.infer<typeof projectEntry>
+type VolunteerEntry = z.infer<typeof volunteerEntry>
+type EducationEntry = z.infer<typeof educationEntry>
+type CertificateEntry = z.infer<typeof certificateEntry>
+type AwardEntry = z.infer<typeof awardEntry>
+type PublicationEntry = z.infer<typeof publicationEntry>
+type SkillEntry = z.infer<typeof skillEntry>
+type LanguageEntry = z.infer<typeof languageEntry>
+type InterestEntry = z.infer<typeof interestEntry>
+type ReferenceEntry = z.infer<typeof referenceEntry>
+
+function cleanFilename(value: string): string {
+  const slug = value.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "_").replace(/^_+|_+$/g, "")
+  return slug || "resume"
+}
+
+function locationText(value?: Location): string {
+  if (!value) return ""
+  return [value.city, value.region, value.countryCode].filter(Boolean).join(", ")
+}
+
+function profileIcon(network = "") {
+  const n = network.toLowerCase()
+  if (n.includes("linkedin")) return "linkedin"
+  if (n.includes("github")) return "github"
+  return ""
+}
+
+function dateRange(startDate?: string, endDate?: string): string {
+  if (!startDate && !endDate) return ""
+  return periodStr({ from: startDate ?? "", to: endDate ?? "Present" })
+}
+
+function degreeText(item: EducationEntry): string {
+  if (item.studyType && item.area) return `${item.studyType} in ${item.area}`
+  return item.studyType ?? item.area ?? ""
+}
+
+export const resumeSchema = resumeInputSchema.transform(data => {
+  const b = data.basics
+  const filename = data.meta.output_filename ?? cleanFilename(b.name ?? "resume")
+
+  const profileContacts = b.profiles.flatMap(item => {
+    if (!item.url) return []
+    return [{
+      icon: profileIcon(item.network),
+      solid: false,
+      href: item.url,
+      text: item.username ?? extractUsername(item.url),
+    }]
+  })
+
+  const contact = [
+    ...(b.email ? [{ icon: "envelope", solid: true, href: `mailto:${b.email}`, text: b.email }] : []),
+    ...(b.phone ? [{ icon: "phone", solid: true, href: "", text: b.phone }] : []),
+    ...(locationText(b.location) ? [{ icon: "", solid: false, href: "", text: locationText(b.location) }] : []),
+    ...(b.url ? [{ icon: "globe", solid: true, href: b.url, text: extractDomain(b.url) }] : []),
+    ...profileContacts,
+  ]
+
+  const toWork = (item: WorkEntry) => {
     const u = item.url ?? ""
     return {
-      company: rich(item.company),
-      period:  periodStr(item.period),
-      role:    rich(item.role),
-      url:     u,
-      domain:  u ? extractDomain(u) : "",
-      bullets: item.bullets.map(rich),
+      title: rich(item.name ?? ""),
+      company: rich(item.name ?? ""),
+      period: dateRange(item.startDate, item.endDate),
+      subtitle: rich(item.position ?? ""),
+      role: rich(item.position ?? item.description ?? ""),
+      description: rich(item.description ?? ""),
+      location: rich(item.location ?? ""),
+      summary: rich(item.summary ?? ""),
+      url: u,
+      domain: u ? extractDomain(u) : "",
+      bullets: item.highlights.map(rich),
     }
   }
 
-  const contact = [
-    { icon: "envelope", solid: true,  href: `mailto:${p.email}`, text: p.email },
-    ...(p.phone        ? [{ icon: "phone",    solid: true,  href: "",             text: p.phone }]                                        : []),
-    ...(p.location     ? [{ icon: "",         solid: false, href: "",             text: p.location }]                                     : []),
-    ...(p.linkedin_url ? [{ icon: "linkedin", solid: false, href: p.linkedin_url, text: extractUsername(p.linkedin_url) }]                : []),
-    ...(p.github_url   ? [{ icon: "github",   solid: false, href: p.github_url,   text: extractUsername(p.github_url) }]                  : []),
-  ]
+  const toProject = (item: ProjectEntry) => {
+    const u = item.url ?? ""
+    return {
+      title: rich(item.name ?? ""),
+      company: rich(item.name ?? ""),
+      period: dateRange(item.startDate, item.endDate),
+      subtitle: rich(item.roles.join(", ") || item.type || item.entity || ""),
+      role: rich(item.roles.join(", ") || item.type || item.entity || ""),
+      summary: rich(item.description ?? ""),
+      keywords: rich(item.keywords.join(", ")),
+      entity: rich(item.entity ?? ""),
+      type: rich(item.type ?? ""),
+      url: u,
+      domain: u ? extractDomain(u) : "",
+      bullets: item.highlights.map(rich),
+    }
+  }
+
+  const toVolunteer = (item: VolunteerEntry) => {
+    const u = item.url ?? ""
+    return {
+      title: rich(item.organization ?? ""),
+      company: rich(item.organization ?? ""),
+      period: dateRange(item.startDate, item.endDate),
+      subtitle: rich(item.position ?? ""),
+      role: rich(item.position ?? ""),
+      summary: rich(item.summary ?? ""),
+      url: u,
+      domain: u ? extractDomain(u) : "",
+      bullets: item.highlights.map(rich),
+    }
+  }
+
+  const toEducation = (item: EducationEntry) => {
+    const u = item.url ?? ""
+    return {
+      title: rich(item.institution ?? ""),
+      institution: rich(item.institution ?? ""),
+      period: dateRange(item.startDate, item.endDate),
+      subtitle: rich(degreeText(item)),
+      degree: rich(degreeText(item)),
+      location: rich(item.location ?? ""),
+      score: rich(item.score ?? ""),
+      courses: item.courses.map(rich),
+      url: u,
+      domain: u ? extractDomain(u) : "",
+    }
+  }
+
+  const toCertificate = (item: CertificateEntry) => {
+    const u = item.url ?? ""
+    return {
+      title: rich(item.name ?? ""),
+      period: item.date ?? "",
+      subtitle: rich(item.issuer ?? ""),
+      url: u,
+      domain: u ? extractDomain(u) : "",
+    }
+  }
+
+  const toAward = (item: AwardEntry) => ({
+    title: rich(item.title ?? ""),
+    period: item.date ?? "",
+    subtitle: rich(item.awarder ?? ""),
+    summary: rich(item.summary ?? ""),
+  })
+
+  const toPublication = (item: PublicationEntry) => {
+    const u = item.url ?? ""
+    return {
+      title: rich(item.name ?? ""),
+      period: item.releaseDate ?? "",
+      subtitle: rich(item.publisher ?? ""),
+      summary: rich(item.summary ?? ""),
+      url: u,
+      domain: u ? extractDomain(u) : "",
+    }
+  }
+
+  const toSkill = (item: SkillEntry) => ({
+    label: rich(item.name ?? ""),
+    level: rich(item.level ?? ""),
+    items: rich(item.keywords.join(", ")),
+  })
+
+  const toLanguage = (item: LanguageEntry) => ({
+    label: rich(item.language ?? ""),
+    items: rich(item.fluency ?? ""),
+  })
+
+  const toInterest = (item: InterestEntry) => ({
+    label: rich(item.name ?? ""),
+    items: rich(item.keywords.join(", ")),
+  })
+
+  const toReference = (item: ReferenceEntry) => ({
+    name: rich(item.name ?? ""),
+    reference: rich(item.reference ?? ""),
+  })
+
+  const work = data.work.map(toWork)
+  const volunteer = data.volunteer.map(toVolunteer)
+  const projects = data.projects.map(toProject)
+  const certificates = data.certificates.map(toCertificate)
+  const education = data.education.map(toEducation)
+  const awards = data.awards.map(toAward)
+  const publications = data.publications.map(toPublication)
+  const skills = data.skills.map(toSkill)
+  const languages = data.languages.map(toLanguage)
+  const interests = data.interests.map(toInterest)
+  const references = data.references.map(toReference)
+  const titles = data.meta.section_titles
 
   return {
-    meta:          data.meta,
-    personal:      { name: rich(p.name), title: rich(p.title) },
+    meta: {
+      ...data.meta,
+      output_filename: filename,
+      section_titles: {
+        summary: titles.summary,
+        work: titles.work,
+        experience: titles.work,
+        volunteer: titles.volunteer,
+        projects: titles.projects,
+        awards: titles.awards,
+        certificates: titles.certificates,
+        certifications: titles.certificates,
+        publications: titles.publications,
+        education: titles.education,
+        skills: titles.skills,
+        languages: titles.languages,
+        interests: titles.interests,
+        references: titles.references,
+      },
+    },
+    personal: { name: rich(b.name ?? ""), title: rich(b.label ?? ""), image: b.image ?? "" },
     contact,
-    summary:       rich(data.summary ?? ""),
-    experience:    data.experience.map(toRole),
-    projects:      data.projects.map(toRole),
-    certifications: data.certifications.map(rich),
-    education:     data.education.map(item => ({
-      institution: rich(item.institution),
-      period:      periodStr(item.period),
-      degree:      rich(item.degree),
-      location:    rich(item.location),
-    })),
-    skills: data.skills.map(item => ({ label: rich(item.label), items: rich(item.items) })),
+    summary: rich(b.summary ?? ""),
+    work,
+    experience: work,
+    volunteer,
+    projects,
+    awards,
+    certificates,
+    certifications: certificates,
+    publications,
+    education,
+    skills,
+    languages,
+    interests,
+    references,
   }
 })
 
