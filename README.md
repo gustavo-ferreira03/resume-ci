@@ -197,23 +197,10 @@ Each push creates a GitHub Release tagged `build-<run_number>` with the generate
 
 ## Syncing With Upstream
 
-If you started your resume from this repository, `make sync` merges the latest upstream changes into your fork:
+Commit or stash your changes, then run:
 
 ```bash
 make sync
 ```
 
-It runs a real 3-way merge (`git merge upstream/main`) and handles the two predictable conflict types automatically:
-
-- **Files you deleted that upstream still edits** (e.g. the example resumes) — kept deleted. Your deletion wins.
-- **Engine files both sides added** (e.g. `lib/sync.sh` on first bootstrap) — upstream's version wins.
-
-If upstream and your fork both edited the same lines in a file, sync stops and shows which files need manual resolution:
-
-```
-Conflicts to resolve manually:
-  templates/default.typ
-Fix them, then: git merge --continue
-```
-
-When the merge is clean, a merge commit is created automatically. Commit or stash all local changes before running `make sync` — git merge requires a clean working tree.
+Merges the latest upstream changes into your fork. Deleted files (such as the example resumes) stay deleted. If a conflict can't be resolved automatically, sync stops and tells you which files to fix before running `git merge --continue`.
