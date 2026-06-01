@@ -9,8 +9,15 @@ Resume content follows the [JSON Resume](https://jsonresume.org/schema) shape: `
 ## Quick Start
 
 ```bash
+git clone https://github.com/gustavo-ferreira03/resume-ci.git my-resume
+cd my-resume
 cp resumes/resume-en.example.yml resumes/resume-en.yml
 make setup
+```
+
+Edit `resumes/resume-en.yml` with your information, then:
+
+```bash
 make build
 ```
 
