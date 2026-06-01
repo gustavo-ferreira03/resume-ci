@@ -1,60 +1,163 @@
+# yaml-language-server: $schema=../lib/schema.json
+
 meta:
   template: default
   font: New Computer Modern
-  output_filename: curriculo_alex_morgan_ptbr
+  output_filename: curriculo_john_doe_ptbr
   section_titles:
-    experience: Experiência Profissional
+    summary: Resumo Profissional
+    work: Experiência Profissional
+    volunteer: Voluntariado
     projects: Projetos
+    awards: Prêmios
+    certificates: Certificações
+    publications: Publicações
     education: Formação Acadêmica
-    skills: Competências e Idiomas
+    skills: Competências Técnicas
+    languages: Idiomas
+    interests: Interesses
+    references: Referências
 
-personal:
-  name: Alex Morgan
-  title: Desenvolvedor Full Stack
-  email: alex.morgan@example.com
-  linkedin_url: https://linkedin.com/in/alex-morgan
-  github_url: https://github.com/alex-morgan
+basics:
+  name: John Doe
+  label: Desenvolvedor Full Stack Sênior
+  email: john.doe@example.invalid
+  phone: "+55 11 90000-0100"
+  url: https://john-doe.example.invalid
+  summary: Desenvolvedor full stack sênior com 7 anos criando ferramentas internas, produtos de analytics e fluxos SaaS para clientes. Mais forte em **TypeScript**, **React**, **Node.js**, **PostgreSQL** e entregas pragmáticas com times pequenos de produto.
+  location:
+    city: São Paulo
+    region: SP
+    countryCode: BR
+  profiles:
+    - network: LinkedIn
+      username: john-doe
+      url: https://linkedin.example.invalid/in/john-doe
+    - network: GitHub
+      username: john-doe
+      url: https://git.example.invalid/john-doe
 
-experience:
-  - company: Empresa Exemplo
-    period:
-      from: Jan 2022
-      to: Atual
-    role: Desenvolvedor Full Stack
-    url: https://example.com
-    bullets:
-      - Desenvolvi **APIs REST** com **Node.js** e **PostgreSQL**, melhorando fluxos internos de relatórios usados por equipes de operação.
-      - Implementei testes automatizados com **Playwright** e **Jest**, reduzindo validações manuais antes de releases.
+work:
+  - name: Example Analytics LLC
+    location: Remoto, Brasil
+    description: Plataforma B2B de analytics para equipes financeiras e de operações
+    position: Desenvolvedor Full Stack Sênior
+    startDate: 2022-01
+    url: https://analytics.example.invalid
+    summary: Responsável por fluxos de relatórios, desenho de APIs e arquitetura frontend em um produto usado por equipes de operações de médio porte.
+    highlights:
+      - Reconstruí APIs de relatórios com **Node.js**, **PostgreSQL** e views materializadas indexadas, reduzindo a latência p95 de 9,4s para 2,1s em 430 contas ativas.
+      - Liderei a migração de 18 telas de dashboard de JavaScript legado para **React** e **TypeScript**, reduzindo defeitos de UI em produção em 31% ao longo de dois ciclos de release.
+      - Introduzi testes smoke com Playwright para faturamento e exportações, substituindo um checklist manual de 90 minutos por uma suíte automática em todo pull request.
+      - Desenhei controles de acesso por perfil para workspaces financeiros, liberando pilotos enterprise com 3 clientes regulados.
+
+  - name: Sample Retail Systems
+    location: São Paulo, SP
+    description: Software de operações e-commerce para varejistas regionais
+    position: Engenheiro de Software
+    startDate: 2019-06
+    endDate: 2021-12
+    url: https://retail.example.invalid
+    summary: Desenvolvi funcionalidades de gestão de pedidos e integrações backend para inventário, fulfillment e suporte ao cliente.
+    highlights:
+      - Construí um painel de exceções de entrega com **Vue.js**, **Express.js** e **MySQL**, dando ao suporte uma fila única para pedidos atrasados e decisões de reembolso.
+      - Automatizei jobs noturnos de reconciliação de estoque em **Python**, reduzindo a revisão em planilhas de 4 horas para 45 minutos para o time de operações.
+      - Adicionei logs estruturados e alertas em webhooks de pagamento, encurtando a triagem de capturas com falha de horas para minutos.
+
+volunteer:
+  - organization: DemoBridge Mentorship
+    position: Mentor Voluntário
+    url: https://mentorship.example.invalid
+    startDate: 2021-03
+    summary: Mentoria para desenvolvedores em início de carreira preparando projetos de portfólio e primeiras entrevistas técnicas.
+    highlights:
+      - Orientei 14 desenvolvedores juniores com revisões de código e entrevistas simuladas, ajudando 6 participantes a conquistar a primeira vaga de desenvolvimento em 12 meses.
+      - Criei uma rubrica reutilizável para design de APIs, testes e deploy, trocando feedbacks improvisados por uma revisão semanal mais clara.
 
 projects:
-  - company: Painel de Analytics
-    period:
-      from: Mar 2024
-      to: Jun 2024
-    role: Criador e Desenvolvedor
-    url: https://github.com/alex-morgan/analytics-dashboard
-    bullets:
-      - Desenvolvi um painel com **React**, **TypeScript** e **PostgreSQL** para acompanhar uso do produto e atividade de clientes.
-      - Adicionei jobs em segundo plano e caching para tirar relatórios lentos do fluxo principal de requisições.
+  - name: Console de Métricas Operacionais
+    description: Dashboard interno de observabilidade para product managers e líderes de customer success.
+    roles:
+      - Desenvolvedor Principal
+    entity: Example Analytics LLC
+    type: Ferramenta Interna
+    keywords: [React, TypeScript, PostgreSQL, Redis, Docker]
+    startDate: 2024-03
+    endDate: 2024-06
+    url: https://git.example.invalid/john-doe/ops-metrics-console
+    highlights:
+      - Construí um dashboard que uniu uso do produto, tickets de suporte e saúde de contas, dando ao customer success uma visão diária de risco para 120 contas.
+      - Adicionei cache com Redis e jobs de atualização em segundo plano, tirando agregações lentas do fluxo principal de requisições.
+
+awards:
+  - title: Prêmio de Impacto em Engenharia
+    date: "2024"
+    awarder: Example Analytics LLC
+    summary: Reconhecimento por reduzir a latência de relatórios e estabilizar verificações de release para a linha de analytics.
+
+certificates:
+  - name: AWS Certified Developer - Associate
+    date: 2023-08
+    issuer: Amazon Web Services
+    url: https://credentials.example.invalid/aws-developer
+  - name: Professional Scrum Master I
+    date: 2021-11
+    issuer: Scrum.org
+    url: https://credentials.example.invalid/scrum-master
+
+publications:
+  - name: Observabilidade Prática para Times Pequenos de Produto
+    publisher: Engineering Notes
+    releaseDate: 2024-02
+    url: https://john-doe.example.invalid/writing/observability-small-teams
+    summary: Guia prático para adicionar logs, traces e alertas sem criar um time separado de plataforma.
 
 education:
   - institution: Universidade Estadual
-    period:
-      from: Ago 2018
-      to: Mai 2022
-    degree: Bacharelado em Ciência da Computação
-    location: Cidade, Estado
+    url: https://university.example.invalid
+    startDate: 2018-08
+    endDate: 2022-05
+    studyType: Bacharelado
+    area: Ciência da Computação
+    score: "9,1/10"
+    courses:
+      - Sistemas de Banco de Dados
+      - Sistemas Distribuídos
+      - Interação Humano-Computador
+      - Laboratório de Engenharia de Software
+    location: São Paulo, SP
 
 skills:
-  - label: Backend
-    items: TypeScript, Node.js, Express.js, Java, Spring Boot, Python
-  - label: Frontend
-    items: React, Next.js, Vue.js, HTML, CSS
-  - label: Dados
-    items: PostgreSQL, MySQL, SQL, Redis
-  - label: Infraestrutura
-    items: Docker, Linux, AWS, CI/CD
-  - label: Testes
-    items: Playwright, Selenium, Jest, JUnit
-  - label: Idiomas
-    items: Português (Nativo), Inglês (Profissional)
+  - name: Backend
+    level: Avançado
+    keywords: [TypeScript, Node.js, Express.js, Java, Spring Boot, Python]
+  - name: Frontend
+    level: Avançado
+    keywords: [React, Next.js, Vue.js, HTML, CSS, Acessibilidade]
+  - name: Dados e Mensageria
+    level: Avançado
+    keywords: [PostgreSQL, MySQL, SQL, Redis, Kafka]
+  - name: Infraestrutura
+    level: Conhecimento prático
+    keywords: [Docker, Linux, AWS, GitHub Actions, CI/CD]
+  - name: Testes
+    level: Avançado
+    keywords: [Playwright, Selenium, Jest, JUnit]
+
+languages:
+  - language: Português
+    fluency: Nativo
+  - language: Inglês
+    fluency: Profissional
+  - language: Espanhol
+    fluency: Conversacional
+
+interests:
+  - name: Práticas de Engenharia
+    keywords: [Observabilidade, Ferramentas para Desenvolvedores, Revisão de Incidentes]
+  - name: Comunidade
+    keywords: [Mentoria, Código Aberto, Escrita Técnica]
+
+references:
+  - name: Jane Example, ex Engineering Manager na Example Analytics LLC
+    reference: Alex transforma problemas ambíguos de relatórios em melhorias pequenas e entregáveis que os clientes percebem rapidamente.

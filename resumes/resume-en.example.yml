@@ -1,60 +1,163 @@
+# yaml-language-server: $schema=../lib/schema.json
+
 meta:
   template: default
   font: New Computer Modern
-  output_filename: resume_alex_morgan_en
+  output_filename: resume_john_doe_en
   section_titles:
-    experience: Experience
+    summary: Professional Summary
+    work: Experience
+    volunteer: Volunteer Work
     projects: Projects
+    awards: Awards
+    certificates: Certifications
+    publications: Publications
     education: Education
     skills: Technical Skills
+    languages: Languages
+    interests: Interests
+    references: References
 
-personal:
-  name: Alex Morgan
-  title: Full Stack Developer
-  email: alex.morgan@example.com
-  linkedin_url: https://linkedin.com/in/alex-morgan
-  github_url: https://github.com/alex-morgan
+basics:
+  name: John Doe
+  label: Senior Full Stack Developer
+  email: john.doe@example.invalid
+  phone: "+1 555 0100"
+  url: https://john-doe.example.invalid
+  summary: Senior full stack developer with 7 years building internal tools, analytics products, and customer-facing SaaS workflows. Strongest in **TypeScript**, **React**, **Node.js**, **PostgreSQL**, and pragmatic delivery with small product teams.
+  location:
+    city: Austin
+    region: TX
+    countryCode: US
+  profiles:
+    - network: LinkedIn
+      username: john-doe
+      url: https://linkedin.example.invalid/in/john-doe
+    - network: GitHub
+      username: john-doe
+      url: https://git.example.invalid/john-doe
 
-experience:
-  - company: Example Corp
-    period:
-      from: Jan 2022
-      to: Present
-    role: Full Stack Developer
-    url: https://example.com
-    bullets:
-      - Built **REST APIs** with **Node.js** and **PostgreSQL**, improving internal reporting workflows used by operations teams.
-      - Implemented automated tests with **Playwright** and **Jest**, reducing manual regression checks before releases.
+work:
+  - name: Example Analytics LLC
+    location: Remote, US
+    description: B2B analytics platform for finance and operations teams
+    position: Senior Full Stack Developer
+    startDate: 2022-01
+    url: https://analytics.example.invalid
+    summary: Owns reporting workflows, API design, and frontend architecture for a product used by mid-market operations teams.
+    highlights:
+      - Rebuilt customer reporting APIs with **Node.js**, **PostgreSQL**, and indexed materialized views, reducing p95 report load time from 9.4s to 2.1s across 430 active accounts.
+      - Led the migration of 18 dashboard screens from legacy JavaScript to **React** and **TypeScript**, cutting production UI defects by 31% over two release cycles.
+      - Introduced Playwright smoke tests for billing and exports, replacing a 90-minute manual checklist with an automated suite that runs on every pull request.
+      - Designed role-based access controls for finance workspaces, unblocking enterprise pilots with 3 regulated customers.
+
+  - name: Sample Retail Systems
+    location: Chicago, IL
+    description: E-commerce operations software for regional retailers
+    position: Software Engineer
+    startDate: 2019-06
+    endDate: 2021-12
+    url: https://retail.example.invalid
+    summary: Built order management features and backend integrations for inventory, fulfillment, and customer support teams.
+    highlights:
+      - Built a shipment exception dashboard with **Vue.js**, **Express.js**, and **MySQL**, giving support agents a single queue for delayed orders and refund decisions.
+      - Automated nightly inventory reconciliation jobs in **Python**, reducing spreadsheet-based review from 4 hours to 45 minutes for the operations team.
+      - Added structured logs and alerting around payment webhooks, shortening incident triage for failed captures from hours to minutes.
+
+volunteer:
+  - organization: DemoBridge Mentorship
+    position: Volunteer Mentor
+    url: https://mentorship.example.invalid
+    startDate: 2021-03
+    summary: Mentors early-career developers preparing portfolio projects and first technical interviews.
+    highlights:
+      - Coached 14 junior developers through code reviews and mock interviews, helping 6 participants land their first developer roles within 12 months.
+      - Created a reusable project rubric for API design, testing, and deployment, replacing ad hoc feedback with a clearer weekly review process.
 
 projects:
-  - company: Analytics Dashboard
-    period:
-      from: Mar 2024
-      to: Jun 2024
-    role: Creator and Developer
-    url: https://github.com/alex-morgan/analytics-dashboard
-    bullets:
-      - Developed a dashboard with **React**, **TypeScript**, and **PostgreSQL** to track product usage and customer activity.
-      - Added background jobs and caching to keep slow reports outside the main request path.
+  - name: Ops Metrics Console
+    description: Internal observability dashboard for product managers and customer success leads.
+    roles:
+      - Lead Developer
+    entity: Example Analytics LLC
+    type: Internal Tool
+    keywords: [React, TypeScript, PostgreSQL, Redis, Docker]
+    startDate: 2024-03
+    endDate: 2024-06
+    url: https://git.example.invalid/john-doe/ops-metrics-console
+    highlights:
+      - Built a dashboard that joined product usage, support tickets, and account health data, giving customer success managers a daily risk view for 120 accounts.
+      - Added Redis-backed caching and background refresh jobs, moving slow account rollups out of the main request path.
+
+awards:
+  - title: Engineering Impact Award
+    date: "2024"
+    awarder: Example Analytics LLC
+    summary: Recognized for reducing reporting latency and stabilizing release checks for the analytics product line.
+
+certificates:
+  - name: AWS Certified Developer - Associate
+    date: 2023-08
+    issuer: Amazon Web Services
+    url: https://credentials.example.invalid/aws-developer
+  - name: Professional Scrum Master I
+    date: 2021-11
+    issuer: Scrum.org
+    url: https://credentials.example.invalid/scrum-master
+
+publications:
+  - name: Practical Observability for Small Product Teams
+    publisher: Engineering Notes
+    releaseDate: 2024-02
+    url: https://john-doe.example.invalid/writing/observability-small-teams
+    summary: A field guide on adding logs, traces, and alerts without creating a separate platform team.
 
 education:
   - institution: State University
-    period:
-      from: Aug 2018
-      to: May 2022
-    degree: Bachelor of Science in Computer Science
-    location: City, State
+    url: https://university.example.invalid
+    startDate: 2018-08
+    endDate: 2022-05
+    studyType: Bachelor of Science
+    area: Computer Science
+    score: "3.8/4.0"
+    courses:
+      - Database Systems
+      - Distributed Systems
+      - Human-Computer Interaction
+      - Software Engineering Studio
+    location: Austin, TX
 
 skills:
-  - label: Backend
-    items: TypeScript, Node.js, Express.js, Java, Spring Boot, Python
-  - label: Frontend
-    items: React, Next.js, Vue.js, HTML, CSS
-  - label: Data
-    items: PostgreSQL, MySQL, SQL, Redis
-  - label: Infrastructure
-    items: Docker, Linux, AWS, CI/CD
-  - label: Testing
-    items: Playwright, Selenium, Jest, JUnit
-  - label: Languages
-    items: English (Native), Portuguese (Professional)
+  - name: Backend
+    level: Advanced
+    keywords: [TypeScript, Node.js, Express.js, Java, Spring Boot, Python]
+  - name: Frontend
+    level: Advanced
+    keywords: [React, Next.js, Vue.js, HTML, CSS, Accessibility]
+  - name: Data & Messaging
+    level: Advanced
+    keywords: [PostgreSQL, MySQL, SQL, Redis, Kafka]
+  - name: Infrastructure
+    level: Working knowledge
+    keywords: [Docker, Linux, AWS, GitHub Actions, CI/CD]
+  - name: Testing
+    level: Advanced
+    keywords: [Playwright, Selenium, Jest, JUnit]
+
+languages:
+  - language: English
+    fluency: Native
+  - language: Portuguese
+    fluency: Professional
+  - language: Spanish
+    fluency: Conversational
+
+interests:
+  - name: Engineering Practices
+    keywords: [Observability, Developer Tooling, Incident Review]
+  - name: Community
+    keywords: [Mentorship, Open Source, Technical Writing]
+
+references:
+  - name: Jane Example, former Engineering Manager at Example Analytics LLC
+    reference: Alex consistently turned ambiguous reporting problems into small, shippable improvements that customers could feel.
