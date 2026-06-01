@@ -16,6 +16,27 @@ export function rich(value: string): RichPart[] {
   return parts
 }
 
+const PRESENT_LABELS: Record<string, string> = {
+  en: "Present",
+  "pt-BR": "Atual",
+  pt: "Atual",
+  es: "Actualidad",
+}
+
+export function resolvePresentLabel(locale: string, override?: string): string {
+  return override ?? PRESENT_LABELS[locale] ?? "Present"
+}
+
+export function formatIsoDate(iso: string, locale: string): string {
+  const [year, month] = iso.split("-")
+  if (!month) return iso
+  const name = new Intl.DateTimeFormat(locale, { month: "short" })
+    .format(new Date(+year, +month - 1, 1))
+    .replace(/\.$/, "")
+    .replace(/^./, c => c.toUpperCase())
+  return `${name} ${year}`
+}
+
 export function periodStr(period?: { from: string; to: string }): string {
   if (!period) return ""
   const from = period.from.trim()

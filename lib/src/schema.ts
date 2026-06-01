@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { rich, periodStr, extractDomain, extractUsername } from "./utils.ts"
+import { rich, periodStr, formatIsoDate, resolvePresentLabel, extractDomain, extractUsername } from "./utils.ts"
 
 const isoDate = z.string().regex(
   /^([1-2][0-9]{3}-[0-1][0-9]-[0-3][0-9]|[1-2][0-9]{3}-[0-1][0-9]|[1-2][0-9]{3})$/,
@@ -40,6 +40,8 @@ const meta = z.looseObject({
   font: z.string().trim().min(1).default("New Computer Modern"),
   output_filename: z.string().regex(/^[A-Za-z0-9_-]+$/).optional(),
   section_titles: sectionTitles,
+  locale: z.string().default("en"),
+  present_label: z.string().optional(),
   canonical: z.url().optional(),
   version: z.string().optional(),
   lastModified: z.string().optional(),
@@ -187,9 +189,11 @@ function profileIcon(network = "") {
   return ""
 }
 
-function dateRange(startDate?: string, endDate?: string): string {
+function dateRange(startDate?: string, endDate?: string, locale = "en", present = "Present"): string {
   if (!startDate && !endDate) return ""
-  return periodStr({ from: startDate ?? "", to: endDate ?? "Present" })
+  const from = startDate ? formatIsoDate(startDate, locale) : ""
+  const to = endDate ? formatIsoDate(endDate, locale) : present
+  return periodStr({ from, to })
 }
 
 function degreeText(item: EducationEntry): string {
@@ -199,6 +203,8 @@ function degreeText(item: EducationEntry): string {
 
 export const resumeSchema = resumeInputSchema.transform(data => {
   const b = data.basics
+  const locale = data.meta.locale
+  const present = resolvePresentLabel(locale, data.meta.present_label)
   const filename = data.meta.output_filename ?? cleanFilename(b.name ?? "resume")
 
   const profileContacts = b.profiles.flatMap(item => {
@@ -224,7 +230,7 @@ export const resumeSchema = resumeInputSchema.transform(data => {
     return {
       title: rich(item.name ?? ""),
       company: rich(item.name ?? ""),
-      period: dateRange(item.startDate, item.endDate),
+      period: dateRange(item.startDate, item.endDate, locale, present),
       subtitle: rich(item.position ?? ""),
       role: rich(item.position ?? item.description ?? ""),
       description: rich(item.description ?? ""),
@@ -241,7 +247,7 @@ export const resumeSchema = resumeInputSchema.transform(data => {
     return {
       title: rich(item.name ?? ""),
       company: rich(item.name ?? ""),
-      period: dateRange(item.startDate, item.endDate),
+      period: dateRange(item.startDate, item.endDate, locale, present),
       subtitle: rich(item.roles.join(", ") || item.type || item.entity || ""),
       role: rich(item.roles.join(", ") || item.type || item.entity || ""),
       summary: rich(item.description ?? ""),
@@ -259,7 +265,7 @@ export const resumeSchema = resumeInputSchema.transform(data => {
     return {
       title: rich(item.organization ?? ""),
       company: rich(item.organization ?? ""),
-      period: dateRange(item.startDate, item.endDate),
+      period: dateRange(item.startDate, item.endDate, locale, present),
       subtitle: rich(item.position ?? ""),
       role: rich(item.position ?? ""),
       summary: rich(item.summary ?? ""),
@@ -274,7 +280,7 @@ export const resumeSchema = resumeInputSchema.transform(data => {
     return {
       title: rich(item.institution ?? ""),
       institution: rich(item.institution ?? ""),
-      period: dateRange(item.startDate, item.endDate),
+      period: dateRange(item.startDate, item.endDate, locale, present),
       subtitle: rich(degreeText(item)),
       degree: rich(degreeText(item)),
       location: rich(item.location ?? ""),
@@ -289,7 +295,7 @@ export const resumeSchema = resumeInputSchema.transform(data => {
     const u = item.url ?? ""
     return {
       title: rich(item.name ?? ""),
-      period: item.date ?? "",
+      period: item.date ? formatIsoDate(item.date, locale) : "",
       subtitle: rich(item.issuer ?? ""),
       url: u,
       domain: u ? extractDomain(u) : "",
@@ -298,7 +304,7 @@ export const resumeSchema = resumeInputSchema.transform(data => {
 
   const toAward = (item: AwardEntry) => ({
     title: rich(item.title ?? ""),
-    period: item.date ?? "",
+    period: item.date ? formatIsoDate(item.date, locale) : "",
     subtitle: rich(item.awarder ?? ""),
     summary: rich(item.summary ?? ""),
   })
@@ -307,7 +313,7 @@ export const resumeSchema = resumeInputSchema.transform(data => {
     const u = item.url ?? ""
     return {
       title: rich(item.name ?? ""),
-      period: item.releaseDate ?? "",
+      period: item.releaseDate ? formatIsoDate(item.releaseDate, locale) : "",
       subtitle: rich(item.publisher ?? ""),
       summary: rich(item.summary ?? ""),
       url: u,

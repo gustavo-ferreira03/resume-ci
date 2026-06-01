@@ -89,6 +89,13 @@
           },
           "additionalProperties": {}
         },
+        "locale": {
+          "default": "en",
+          "type": "string"
+        },
+        "present_label": {
+          "type": "string"
+        },
         "canonical": {
           "type": "string",
           "format": "uri"
