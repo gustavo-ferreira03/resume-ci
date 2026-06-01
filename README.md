@@ -1,21 +1,38 @@
 # resume-ci
 
-Write your resume in YAML, keep it in Git, and build PDFs with [Typst](https://typst.app) locally or in CI.
+> Resume generator for developers. Content in YAML, layout in Typst — edit one, the other doesn't move.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Resume content follows the [JSON Resume](https://jsonresume.org/schema) shape: `basics`, `work`, `education`, `skills`, `projects`, and the other standard sections. Use `meta` for resume-ci settings such as the template, font, output name, and section titles.
+Maintaining a resume in Word or Google Docs means fighting content and formatting at the same time. resume-ci keeps them separate: content in YAML files versioned in Git, layout in a Typst template. Run `make build`, get a clean PDF.
+
+Ships with `CLAUDE.md` and `AGENTS.md` so AI agents know the schema and writing standards. Ask your AI agent to rewrite a section and the PDF layout stays untouched.
+
+Content uses the [JSON Resume](https://jsonresume.org/schema) schema. A `meta` block controls rendering: template, font, locale, and section titles.
+
+![Resume preview](.github/resume-preview.png)
 
 ## Quick Start
+
+To keep your resume private, create a new private repository on GitHub, then:
 
 ```bash
 git clone https://github.com/gustavo-ferreira03/resume-ci.git
 cd resume-ci
-cp resumes/resume-en.example.yml resumes/resume-en.yml
+git remote set-url origin <your-repo-url>
+git push -u origin main
 make setup
+cp resumes/resume-en.example.yml resumes/resume-en.yml
 ```
 
-Edit `resumes/resume-en.yml` with your information, then:
+To keep it public, fork this repository on GitHub, clone your fork, then:
+
+```bash
+make setup
+cp resumes/resume-en.example.yml resumes/resume-en.yml
+```
+
+In both cases, edit `resumes/resume-en.yml` with your information, then:
 
 ```bash
 make build
@@ -23,9 +40,21 @@ make build
 
 PDFs are written to `build/`.
 
+To pull tooling and template updates from this repository into your repo later, commit or stash your changes and run:
+
+```bash
+make sync
+```
+
+Merges upstream changes. Your resumes are never touched. If a conflict requires manual resolution, sync stops and lists the files before running:
+
+```bash
+git merge --continue
+```
+
 ## Requirements
 
-`make setup` installs Bun if needed, installs the Bun dependencies, downloads Typst, and places the Font Awesome fonts under `lib/bin/`.
+`make setup` downloads Bun, Typst, and Font Awesome fonts into `lib/bin/` and installs dependencies.
 
 Install these system packages first:
 
@@ -46,7 +75,7 @@ sudo apt install curl jq tar unzip
 | Command | Description |
 |---|---|
 | `make setup` | Install local tooling |
-| `make sync` | Pull upstream tooling/template updates, leaving your resumes untouched |
+| `make sync` | Merge upstream changes into your repo |
 | `make schema` | Regenerate `lib/schema.json` for editor autocomplete |
 | `make build` | Build every resume in `resumes/` |
 | `make build ARGS="resumes/resume-en.yml"` | Build one resume |
@@ -143,17 +172,21 @@ Extra JSON Resume fields pass validation, but the default template only renders 
 
 ## Editor Autocomplete
 
-Keep this comment at the top of each resume to get autocomplete and inline validation in editors with a YAML language server, such as VS Code or Neovim:
+Add this to the top of any resume file for autocomplete and inline validation (VS Code, Neovim, any editor with a YAML language server):
 
 ```yaml
 # yaml-language-server: $schema=../lib/schema.json
 ```
 
-`lib/schema.json` is generated from `lib/src/schema.ts`. Do not edit it by hand. If you change the Zod schema, run `make schema`.
+`lib/schema.json` is generated from `lib/src/schema.ts`. Do not edit it by hand. If you change the Zod schema, run:
+
+```bash
+make schema
+```
 
 ## `meta` Extension
 
-`meta` holds build and presentation settings. JSON Resume already allows `meta`, so resume-ci adds its own keys there.
+`meta` extends JSON Resume's own `meta` object with build and presentation settings.
 
 | Field | Required | Notes |
 |---|---|---|
@@ -165,7 +198,7 @@ Keep this comment at the top of each resume to get autocomplete and inline valid
 | `meta.section_titles` | no | Custom section labels |
 | `meta.canonical`, `meta.version`, `meta.lastModified` | no | JSON Resume metadata fields |
 
-`meta.locale` controls how dates are formatted throughout the PDF. `2024-09` becomes `Sep 2024` in English, `Set 2024` in Portuguese, and `Sep 2024` in Spanish — month name taken from the locale, year appended. It also sets the default label for ongoing roles: `Present`, `Atual`, or `Actualidad`. Override that label with `meta.present_label` if needed.
+`meta.locale` formats dates across the PDF — `2024-09` renders as `Sep 2024` in `en` and `Set 2024` in `pt-BR` — and sets the default open-role label (`Present`, `Atual`, `Actualidad`). Use `meta.present_label` to override it.
 
 ```yaml
 meta:
@@ -211,13 +244,3 @@ meta:
 The workflow runs on pushes to `main` when resume, template, or builder files change.
 
 Each push creates a GitHub Release tagged `build-<run_number>` with the generated PDFs attached.
-
-## Syncing With Upstream
-
-Commit or stash your changes, then run:
-
-```bash
-make sync
-```
-
-Merges the latest upstream changes into your fork. Deleted files (such as the example resumes) stay deleted. If a conflict can't be resolved automatically, sync stops and tells you which files to fix before running `git merge --continue`.
