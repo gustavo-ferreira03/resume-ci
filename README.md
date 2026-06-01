@@ -3,6 +3,10 @@
 > Simple resume generator built for developers.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Typst](https://img.shields.io/badge/Built%20with-Typst-239DAD.svg)](https://typst.app)
+[![Bun](https://img.shields.io/badge/Runtime-Bun-black.svg)](https://bun.sh)
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6.svg)](https://www.typescriptlang.org)
+[![JSON Resume](https://img.shields.io/badge/Schema-JSON%20Resume-green.svg)](https://jsonresume.org)
 
 Maintaining a resume in Word or Google Docs means fighting content and formatting at the same time. resume-ci keeps them separate: content in YAML files versioned in Git, layout in a Typst template. Run `make build` locally, or push to `main` and GitHub Actions builds the PDFs and publishes them to a release.
 
