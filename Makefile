@@ -1,4 +1,4 @@
-.PHONY: build watch setup schema
+.PHONY: build watch setup schema sync
 
 BUN := $(shell command -v bun 2>/dev/null || printf "%s/.bun/bin/bun" "$$HOME")
 
@@ -13,3 +13,6 @@ watch:
 
 setup:
 	bash lib/setup.sh
+
+sync:
+	bash lib/sync.sh

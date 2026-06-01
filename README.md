@@ -39,6 +39,7 @@ sudo apt install curl jq tar unzip
 | Command | Description |
 |---|---|
 | `make setup` | Install local tooling |
+| `make sync` | Pull upstream tooling/template updates, leaving your resumes untouched |
 | `make schema` | Regenerate `lib/schema.json` for editor autocomplete |
 | `make build` | Build every resume in `resumes/` |
 | `make build ARGS="resumes/resume-en.yml"` | Build one resume |
@@ -194,11 +195,24 @@ The workflow runs on pushes to `main` when resume, template, or builder files ch
 
 Each push creates a GitHub Release tagged `build-<run_number>` with the generated PDFs attached.
 
-## Pulling Updates
+## Syncing With Upstream
 
-If this repository is your `upstream` remote:
+If you started your resume from this repository, `make sync` pulls the latest tooling and template without disturbing your content:
 
 ```bash
-git fetch upstream
-git merge upstream/main
+make sync
 ```
+
+It mirrors a small set of **upstream-owned** paths and leaves everything else alone:
+
+| Path | Owner | On sync |
+|---|---|---|
+| `lib/`, `.github/`, `Makefile`, `templates/default.typ` | upstream | overwritten to match upstream (edits, additions, and deletions all propagate) |
+| `resumes/`, your own `templates/*.typ`, the docs | you | never touched |
+
+Because it copies paths rather than merging, it can't raise a conflict on your resumes or a customized template. Changes land **staged** for you to review with `git diff --cached` and commit when ready — nothing is committed automatically.
+
+Two notes:
+
+- `make sync` first adds an `upstream` remote pointing at this repository if you don't have one, then refuses to run if any upstream-owned path has uncommitted changes (so it never discards local engine edits). Resume edits never block it.
+- To change what sync manages, edit the `SYNC_PATHS` list at the top of `lib/sync.sh` — add a path to let sync own it, or remove one to take ownership yourself.
