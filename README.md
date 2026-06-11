@@ -1,100 +1,133 @@
+<div align="center">
+
 # resume-ci
 
-> Simple resume generator built for developers.
+*Version-controlled resumes, clean Typst PDFs, automated GitHub releases.*
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+[![Build](https://img.shields.io/github/actions/workflow/status/gustavo-ferreira03/resume-ci/build.yml?style=flat-square&label=Build)](https://github.com/gustavo-ferreira03/resume-ci/actions)
 [![Typst](https://img.shields.io/badge/Typst-239DAD?style=flat-square&logo=typst&logoColor=white)](https://typst.app)
-[![JSON Resume](https://img.shields.io/badge/JSON%20Resume-green?style=flat-square)](https://jsonresume.org)
+[![JSON Resume](https://img.shields.io/badge/JSON%20Resume-compatible-green?style=flat-square)](https://jsonresume.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Bun](https://img.shields.io/badge/Bun-black?style=flat-square&logo=bun&logoColor=white)](https://bun.sh)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
-Maintaining a resume in Word or Google Docs means fighting content and formatting at the same time. resume-ci keeps them separate: content in YAML files versioned in Git, layout in a Typst template. Run `make build` locally, or push to `main` and GitHub Actions builds the PDFs and publishes them to a release.
+[Features](#features) | [Getting Started](#getting-started) | [Usage](#usage) | [Resume Format](#resume-format) | [Templates](#templates) | [Automation](#automation)
 
-Ships with `CLAUDE.md` and `AGENTS.md` so AI agents know the schema and writing standards. Ask your favorite AI agent to rewrite a section and the PDF layout stays exactly as it should.
+</div>
 
-Content uses the [JSON Resume](https://jsonresume.org/schema) schema. A `meta` block controls rendering: template, font, locale, and section titles.
+`resume-ci` keeps resume content, layout, and publishing separate. You write your resume as YAML, validate it against a JSON Resume-compatible schema, render it with a Typst template, and let GitHub Actions publish fresh PDFs whenever you push changes.
 
-PDF examples are available in the [releases](https://github.com/gustavo-ferreira03/resume-ci/releases).
+It is built for developers who want their resume to be versioned, reviewable, easy to edit with an AI agent, and reproducible on any machine.
 
-## Quick Start
+> [!TIP]
+> PDF examples are published in the [GitHub Releases](https://github.com/gustavo-ferreira03/resume-ci/releases) for this repository.
 
-You'll need these system packages installed:
+## Features
 
-**macOS:**
+- **YAML-first resume content** using familiar JSON Resume field names.
+- **Typst PDF rendering** with a clean default template and support for custom templates.
+- **Schema validation and editor autocomplete** from `lib/schema.json`.
+- **Locale-aware dates** for English, Brazilian Portuguese, Spanish, and any BCP 47 locale supported by your runtime.
+- **Automated releases** that attach generated PDFs to a GitHub Release on every relevant push to `main`.
+- **AI-agent friendly guidance** in `AGENTS.md` and `CLAUDE.md` for STAR-based resume bullets and evidence standards.
 
-```bash
-brew install curl jq
+## How It Works
+
+```mermaid
+flowchart LR
+  A[resumes/*.yml] --> B[Zod schema]
+  B --> C[Bun builder]
+  C --> D[Typst template]
+  D --> E[build/*.pdf]
+  E --> F[GitHub Release]
 ```
 
-**Ubuntu / Debian:**
+| Part | Purpose |
+| --- | --- |
+| `resumes/*.yml` | One YAML file per resume or language variant |
+| `lib/src/schema.ts` | Source schema and data transformation logic |
+| `lib/schema.json` | Generated JSON Schema for editor validation and autocomplete |
+| `templates/*.typ` | Typst resume templates |
+| `build/*.pdf` | Generated PDFs, ignored by Git |
+| `.github/workflows/build.yml` | CI workflow that builds and publishes PDFs |
+
+## Getting Started
+
+### Prerequisites
+
+- [Git](https://git-scm.com/downloads)
+- `bash`, `curl`, `jq`, `tar`, and `unzip` on macOS/Linux
+- PowerShell on Windows
+
+`make setup` installs Bun dependencies and downloads local copies of Typst and Font Awesome into `lib/bin/`.
+
+Install the system packages first if needed:
 
 ```bash
+# macOS
+brew install curl jq
+
+# Ubuntu / Debian
 sudo apt install curl jq tar unzip
 ```
 
-To keep your resume private, create a private repository on GitHub, then:
+### Create Your Resume Repository
+
+For a private resume, create an empty private repository on GitHub, then run:
 
 ```bash
 git clone https://github.com/gustavo-ferreira03/resume-ci.git
 cd resume-ci
-git remote set-url origin <your-repo-url>
+git remote set-url origin <your-private-repo-url>
 git push -u origin main
-make setup
-cp resumes/resume-en.example.yml resumes/resume-en.yml
 ```
 
-To keep it public, fork this repository on GitHub, clone your fork, then:
+For a public resume, fork this repository and clone your fork:
+
+```bash
+git clone <your-fork-url>
+cd resume-ci
+```
+
+### Build Your First PDF
 
 ```bash
 make setup
 cp resumes/resume-en.example.yml resumes/resume-en.yml
+make build ARGS="resumes/resume-en.yml"
 ```
 
-Edit `resumes/resume-en.yml` with your information. When ready:
+Edit `resumes/resume-en.yml` with your information. The generated PDF lands in `build/`.
 
-```bash
-make build
+> [!NOTE]
+> The example resumes are intentionally complete. Delete sections you do not need or set list-backed sections to `[]` to hide them.
+
+### Windows Setup
+
+Use the PowerShell setup script instead of `make setup`:
+
+```powershell
+.\lib\setup.ps1
+Copy-Item resumes\resume-en.example.yml resumes\resume-en.yml
+bun .\lib\src\resume-ci.ts resumes\resume-en.yml
 ```
 
-PDFs land in `build/`. Push to `main` and GitHub Actions builds and publishes them to a GitHub Release automatically.
-
-To pull tooling and template updates later, `make sync` merges upstream changes without touching your resumes. Commit or stash your changes first, then:
-
-```bash
-make sync
-```
-
-If a conflict needs manual resolution, sync stops and shows which files to fix. Resume with:
-
-```bash
-git merge --continue
-```
-
-> [!TIP]
-> See [`AGENTS.md`](AGENTS.md) for guidance on writing strong resume bullets: STAR structure, evidence standards, and AI-writing patterns to avoid.
-
-## Commands
+## Usage
 
 | Command | Description |
-|---|---|
-| `make setup` | Install local tooling |
-| `make sync` | Merge upstream changes into your repo |
-| `make schema` | Regenerate `lib/schema.json` for editor autocomplete |
-| `make build` | Build every resume in `resumes/` |
+| --- | --- |
+| `make setup` | Install local tooling and dependencies |
+| `make build` | Build every `*.yml` resume in `resumes/` |
 | `make build ARGS="resumes/resume-en.yml"` | Build one resume |
-| `make watch` | Watch all resumes and templates |
-| `bun lib/src/resume-ci.ts --watch resumes/resume-en.yml` | Watch one resume |
-| `bun lib/src/resume-ci.ts --output-dir dist` | Use a custom output directory |
+| `make watch` | Watch all resumes and templates, rebuilding on change |
+| `make watch ARGS="resumes/resume-en.yml"` | Watch one resume and all templates |
+| `make schema` | Regenerate `lib/schema.json` from `lib/src/schema.ts` |
+| `make sync` | Pull upstream tooling and template updates into your fork |
+| `bun lib/src/resume-ci.ts --output-dir dist` | Build to a custom output directory |
 
-## YAML Structure
+## Resume Format
 
-Copy an example and edit it:
-
-```bash
-cp resumes/resume-en.example.yml resumes/resume-en.yml
-```
-
-Smallest useful shape:
+Resume YAML follows the [JSON Resume](https://jsonresume.org/schema) shape, with an extra `meta` block for rendering options.
 
 ```yaml
 # yaml-language-server: $schema=../lib/schema.json
@@ -105,6 +138,7 @@ meta:
   output_filename: resume_john_doe_en
   locale: en
   section_titles:
+    summary: Professional Summary
     work: Experience
     projects: Projects
     education: Education
@@ -114,7 +148,7 @@ basics:
   name: John Doe
   label: Full Stack Developer
   email: john.doe@example.invalid
-  summary: Short profile text.
+  summary: Full stack developer strongest in **TypeScript**, **React**, and **PostgreSQL**.
   profiles:
     - network: LinkedIn
       url: https://linkedin.example.invalid/in/john-doe
@@ -126,9 +160,8 @@ work:
     position: Full Stack Developer
     startDate: 2022-01
     endDate: 2024-06
-    url: https://company.example.invalid
     highlights:
-      - Built **REST APIs** with **Node.js** and **PostgreSQL**.
+      - Built **REST APIs** with **Node.js** and **PostgreSQL** for internal reporting workflows.
 
 projects: []
 certificates: []
@@ -137,60 +170,38 @@ skills: []
 languages: []
 ```
 
-Use `[]` to hide any list-backed section. Omit `endDate` for current roles; the PDF shows the locale's present label.
+### Supported Sections
 
-## JSON Resume Compatibility
+| YAML key | Rendered content |
+| --- | --- |
+| `basics` | Name, title, contact links, location, summary |
+| `work` | Professional experience |
+| `volunteer` | Volunteer experience |
+| `projects` | Projects and portfolio work |
+| `awards` | Awards and honors |
+| `certificates` | Certifications |
+| `publications` | Publications and articles |
+| `education` | Education entries and courses |
+| `skills` | Skill groups and keywords |
+| `languages` | Languages and fluency |
+| `interests` | Interests or focus areas |
+| `references` | References or testimonials |
 
-The YAML uses [JSON Resume](https://jsonresume.org/schema) field names:
+Extra JSON Resume fields are accepted by the schema, but the default Typst template may not render them.
 
-| Field | Rendered as |
-|---|---|
-| `basics.name` | Header name |
-| `basics.label` | Header title |
-| `basics.email`, `phone`, `url`, `location`, `profiles` | Contact row |
-| `basics.summary` | Summary section |
-| `work[].name`, `position`, `highlights` | Experience entries |
-| `volunteer[].organization`, `position`, `highlights` | Volunteer entries |
-| `projects[].name`, `roles`, `highlights` | Project entries |
-| `awards[].title`, `awarder` | Award entries |
-| `certificates[].name`, `issuer` | Certification entries |
-| `publications[].name`, `publisher` | Publication entries |
-| `education[].institution`, `studyType`, `area` | Education entries |
-| `skills[].name`, `keywords` | Skill groups |
-| `languages[].language`, `fluency` | Language entries |
-| `interests[].name`, `keywords` | Interest entries |
-| `references[].name`, `reference` | Reference entries |
-
-Dates use ISO-style format: `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`.
-
-Extra JSON Resume fields pass validation but may not render in the default template.
-
-## Editor Autocomplete
-
-Add this comment to the top of any resume file for inline validation and autocomplete in VS Code, Neovim, or any editor with a YAML language server:
-
-```yaml
-# yaml-language-server: $schema=../lib/schema.json
-```
-
-> [!NOTE]
-> `lib/schema.json` is generated from `lib/src/schema.ts`. Do not edit it by hand. After changing the Zod schema, run `make schema`.
-
-## `meta` Reference
-
-`meta` extends JSON Resume's own `meta` object with build and presentation settings.
+### `meta` Reference
 
 | Field | Default | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `meta.template` | `default` | Template name without `.typ` |
-| `meta.font` | `New Computer Modern` | Typst font family name |
-| `meta.output_filename` | derived from `basics.name` | PDF filename without `.pdf` |
-| `meta.locale` | `en` | BCP 47 locale for date formatting (`en`, `pt-BR`, `es`, …) |
-| `meta.present_label` | derived from `locale` | Label for roles with no `endDate` (`Present`, `Atual`, `Actualidad`) |
-| `meta.section_titles` | section defaults | Custom section labels |
-| `meta.canonical`, `meta.version`, `meta.lastModified` | — | Standard JSON Resume metadata |
+| `meta.font` | `New Computer Modern` | Must be a Typst-readable font family |
+| `meta.output_filename` | Derived from `basics.name` | PDF filename without `.pdf`; use only letters, digits, `_`, and `-` |
+| `meta.locale` | `en` | BCP 47 locale for date formatting |
+| `meta.present_label` | Derived from locale | Override for open-ended roles |
+| `meta.section_titles` | Built-in English labels | Custom section titles, useful for translations |
+| `meta.canonical`, `meta.version`, `meta.lastModified` | None | Standard JSON Resume metadata |
 
-`meta.locale` formats dates across the PDF (`2024-09` renders as `Sep 2024` in `en` and `Set 2024` in `pt-BR`) and sets the default open-role label. Use `meta.present_label` to override it.
+Dates must use `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`. Omit `endDate` for current roles.
 
 ```yaml
 meta:
@@ -198,39 +209,89 @@ meta:
   present_label: Atual
 ```
 
-Section title keys use JSON Resume section names:
+`2024-09` renders as `Sep 2024` with `locale: en`, `Set 2024` with `locale: pt-BR`, and `Sept 2024` with `locale: es` depending on your runtime locale data.
 
-```yaml
-meta:
-  section_titles:
-    summary: Professional Summary
-    work: Experience
-    projects: Projects
-    certificates: Certifications
-    education: Education
-    skills: Technical Skills
-```
+### Rich Text
 
-## Bullet Formatting
-
-Bullets and text fields support:
+Most text fields and bullets support a small Markdown-style subset:
 
 | Syntax | Output |
-|---|---|
-| `**text**` | bold |
-| `_text_` | italic |
+| --- | --- |
+| `**text**` | Bold |
+| `_text_` | Italic |
+
+## Editor Autocomplete
+
+Add this comment to the top of any resume YAML file:
+
+```yaml
+# yaml-language-server: $schema=../lib/schema.json
+```
+
+This enables validation and autocomplete in VS Code, Neovim, and other editors with YAML language server support.
+
+> [!IMPORTANT]
+> `lib/schema.json` is generated from `lib/src/schema.ts`. If you change the Zod schema, run `make schema` instead of editing the JSON Schema by hand.
 
 ## Templates
 
-Templates are single Typst files in `templates/`. Pick one in YAML:
+Templates are regular Typst files in `templates/`. Pick a template from YAML:
 
 ```yaml
 meta:
-  template: my-template
+  template: default
 ```
 
-`meta.font` must be a valid Typst font family name.
+To create a new template, add `templates/<name>.typ` and set `meta.template` to `<name>`. The builder passes the validated resume data to Typst as the `data` input.
 
-## GitHub Actions
+The default template uses Font Awesome icons for common contact methods and profile links. `make setup` downloads the required fonts to `lib/bin/fonts`.
 
-The workflow triggers on pushes to `main` when resume, template, or builder files change. Each run creates a GitHub Release tagged `build-<run_number>` with the PDFs attached.
+## Automation
+
+The GitHub Actions workflow runs on pushes to `main` when resume, template, workflow, Makefile, or builder files change. It builds PDFs and publishes them to a GitHub Release tagged `build-<run_number>`.
+
+To publish a new resume version:
+
+```bash
+git add resumes/resume-en.yml
+git commit -m "Update resume"
+git push origin main
+```
+
+To pull future improvements from the upstream template repository:
+
+```bash
+make sync
+```
+
+`make sync` requires a clean working tree. If Git reports conflicts, resolve them and continue with `git merge --continue`.
+
+## AI Agent Guidance
+
+This repository includes [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLAUDE.md) so AI agents know how to edit resume content safely.
+
+The guidance emphasizes:
+
+- STAR-based experience bullets.
+- Evidence-backed metrics and outcomes.
+- Plain language over generic resume filler.
+- No fabricated employers, dates, credentials, tools, or results.
+- Building the resume after content changes.
+
+## Troubleshooting
+
+| Problem | Fix |
+| --- | --- |
+| `typst not found. Run make setup` | Run `make setup` or `./lib/setup.ps1` on Windows |
+| Missing Font Awesome icons | Delete `lib/bin/fonts` and rerun setup |
+| YAML validation error | Check the reported field path and compare with `resumes/*.example.yml` |
+| Template not found | Confirm `meta.template` matches a file in `templates/` without `.typ` |
+| No PDF generated in CI | Check the `Build Resumes` workflow logs and repository Actions permissions |
+| Sync refuses to run | Commit or stash local changes before `make sync` |
+
+## Resources
+
+- [Typst documentation](https://typst.app/docs/)
+- [JSON Resume schema](https://jsonresume.org/schema)
+- [Bun documentation](https://bun.sh/docs)
+- [GitHub Actions documentation](https://docs.github.com/actions)
