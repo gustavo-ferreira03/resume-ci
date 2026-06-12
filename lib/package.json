@@ -41,7 +41,8 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
-    "prepack": "mkdir -p templates && cp ../templates/default.typ templates/default.typ && bun run build",
+    "prepack": "cp ../README.md README.md && mkdir -p templates && cp ../templates/default.typ templates/default.typ && bun run build",
+    "postpack": "rm -f README.md",
     "test": "bun test"
   },
   "dependencies": {
