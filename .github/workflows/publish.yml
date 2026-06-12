@@ -24,6 +24,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - name: Setup
         shell: bash
         run: make setup
