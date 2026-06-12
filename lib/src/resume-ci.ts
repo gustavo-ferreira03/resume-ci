@@ -1,12 +1,12 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
+import { mkdir, readdir, readFile, stat } from "node:fs/promises"
 import { parseArgs } from "node:util"
-import { mkdirSync, readdirSync, statSync } from "node:fs"
-import { join, relative, resolve } from "node:path"
-import { parse as parseYaml } from "yaml"
-import { resumeSchema } from "./schema.ts"
+import { dirname, join, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
+import { generateResume, parseResume } from "./index.js"
 
-const ROOT = resolve(import.meta.dir, "../..")
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
 const DATA_DIR = join(ROOT, "resumes")
 const BUILD_DIR = join(ROOT, "build")
 const FONT_DIR = join(ROOT, "lib", "bin", "fonts")
@@ -18,8 +18,8 @@ class Builder {
     private readonly paths: string[],
   ) {}
 
-  static create(outputDir: string, explicit: string[] | null) {
-    return new Builder(outputDir, Builder.resolvePaths(explicit))
+  static async create(outputDir: string, explicit: string[] | null) {
+    return new Builder(outputDir, await Builder.resolvePaths(explicit))
   }
 
   async buildAll(): Promise<boolean> {
@@ -32,50 +32,38 @@ class Builder {
   }
 
   async watch(): Promise<void> {
-    const watched = [...this.paths, ...Builder.templatePaths()]
+    const watched = [...this.paths, ...await Builder.templatePaths()]
     let last: string | null = null
 
     process.on("SIGINT", () => { console.log("\nStopped watching."); process.exit(0) })
     console.log("Watching for changes. Press Ctrl+C to stop.")
 
     while (true) {
-      const snapshot = JSON.stringify(watched.map(f => { try { return statSync(f).mtimeMs } catch { return 0 } }))
+      const snapshot = JSON.stringify(await Promise.all(watched.map(async f => {
+        try { return (await stat(f)).mtimeMs } catch { return 0 }
+      })))
       if (snapshot !== last) { await this.buildAll(); last = snapshot }
-      await Bun.sleep(500)
+      await sleep(500)
     }
   }
 
   private async compile(resumePath: string): Promise<string> {
-    const raw = parseYaml(await Bun.file(resumePath).text())
-
-    const result = resumeSchema.safeParse(raw)
-    if (!result.success) {
-      const issue = result.error.issues[0]
-      const path = issue.path.join(".") || "resume"
-      throw new Error(`${path}: ${issue.message}`)
-    }
-
-    const ctx = result.data
-    const templatePath = join(TPL_DIR, `${ctx.meta.template}.typ`)
-    try { statSync(templatePath) } catch {
-      throw new Error(`Template not found: ${templatePath}`)
-    }
-
-    mkdirSync(this.outputDir, { recursive: true })
+    const ctx = parseResume(await readFile(resumePath, "utf8"), { inputFormat: "yaml" })
     const pdf = join(this.outputDir, `${ctx.meta.output_filename}.pdf`)
 
-    const proc = Bun.spawn(
-      [Builder.findTypst(), "compile", "--root", ROOT, "--font-path", FONT_DIR,
-       "--input", `data=${JSON.stringify(ctx)}`, relative(ROOT, templatePath), pdf],
-      { cwd: ROOT, stderr: "inherit" },
-    )
-    if (await proc.exited !== 0) throw new Error("typst compile failed")
+    await mkdir(this.outputDir, { recursive: true })
+    await generateResume(ctx, {
+      fontDir: FONT_DIR,
+      outputPath: pdf,
+      templatesDir: TPL_DIR,
+    })
+
     return pdf
   }
 
-  private static resolvePaths(explicit: string[] | null): string[] {
+  private static async resolvePaths(explicit: string[] | null): Promise<string[]> {
     if (explicit) return explicit
-    const files = readdirSync(DATA_DIR)
+    const files = (await readdir(DATA_DIR))
       .filter(f => f.endsWith(".yml") && !f.startsWith("."))
       .sort()
       .map(f => join(DATA_DIR, f))
@@ -83,26 +71,19 @@ class Builder {
     return files
   }
 
-  private static templatePaths(): string[] {
-    return readdirSync(TPL_DIR)
+  private static async templatePaths(): Promise<string[]> {
+    return (await readdir(TPL_DIR))
       .filter(f => f.endsWith(".typ"))
       .map(f => join(TPL_DIR, f))
   }
-
-  private static findTypst(): string {
-    for (const name of ["typst", "typst.exe"]) {
-      const path = join(ROOT, "lib", "bin", name)
-      try { statSync(path); return path } catch {}
-    }
-    const found = Bun.which("typst")
-    if (found) return found
-    throw new Error("typst not found. Run make setup")
-  }
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolveSleep => setTimeout(resolveSleep, ms))
+}
 
 const { values, positionals } = parseArgs({
-  args: Bun.argv.slice(2),
+  args: process.argv.slice(2),
   options: {
     "output-dir": { type: "string",  default: BUILD_DIR },
     watch:        { type: "boolean", default: false },
@@ -110,7 +91,7 @@ const { values, positionals } = parseArgs({
   allowPositionals: true,
 })
 
-const builder = Builder.create(
+const builder = await Builder.create(
   values["output-dir"] as string,
   positionals.length ? positionals.map(p => resolve(p)) : null,
 )

@@ -1,4 +1,6 @@
 build/
+lib/dist/
+lib/templates/
 *.pdf
 .agents/
 bin/

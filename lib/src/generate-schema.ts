@@ -2,7 +2,7 @@
 
 import { join, resolve } from "node:path"
 import { z } from "zod"
-import { resumeInputSchema } from "./schema.ts"
+import { resumeInputSchema } from "./schema.js"
 
 const ROOT = resolve(import.meta.dir, "../..")
 

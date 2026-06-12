@@ -11,12 +11,18 @@ if (-not (Get-Command bun -ErrorAction SilentlyContinue)) {
 
 bun install --cwd $lib
 
-if (-not (Test-Path (Join-Path $bin "typst.exe"))) {
+if (-not (Get-Command typst -ErrorAction SilentlyContinue)) {
     $asset = (Invoke-RestMethod https://api.github.com/repos/typst/typst/releases/latest).assets | Where-Object name -match 'x86_64-pc-windows-msvc\.zip$' | Select-Object -First 1
     Invoke-WebRequest $asset.browser_download_url -OutFile "$tmp\typst.zip"
     Expand-Archive "$tmp\typst.zip" -DestinationPath "$tmp\typst" -Force
-    New-Item -ItemType Directory -Force -Path $bin | Out-Null
-    Move-Item (Get-ChildItem "$tmp\typst" -Filter typst.exe -Recurse | Select-Object -First 1).FullName (Join-Path $bin "typst.exe") -Force
+    $userBin = Join-Path $HOME ".local\bin"
+    New-Item -ItemType Directory -Force -Path $userBin | Out-Null
+    Move-Item (Get-ChildItem "$tmp\typst" -Filter typst.exe -Recurse | Select-Object -First 1).FullName (Join-Path $userBin "typst.exe") -Force
+    $env:PATH = "$userBin;$env:PATH"
+    $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    if (-not ($userPath -split ';' | Where-Object { $_ -eq $userBin })) {
+        [Environment]::SetEnvironmentVariable("Path", "$userBin;$userPath", "User")
+    }
 }
 
 if (-not (Test-Path (Join-Path $bin "fonts"))) {

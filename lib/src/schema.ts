@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { rich, periodStr, formatIsoDate, resolvePresentLabel, extractDomain, extractUsername } from "./utils.ts"
+import { rich, periodStr, formatIsoDate, resolvePresentLabel, extractDomain, extractUsername } from "./utils.js"
 
 const isoDate = z.string().regex(
   /^([1-2][0-9]{3}-[0-1][0-9]-[0-3][0-9]|[1-2][0-9]{3}-[0-1][0-9]|[1-2][0-9]{3})$/,
@@ -396,3 +396,4 @@ export const resumeSchema = resumeInputSchema.transform(data => {
 })
 
 export type ResumeContext = z.infer<typeof resumeSchema>
+export type ResumeInput = z.input<typeof resumeInputSchema>

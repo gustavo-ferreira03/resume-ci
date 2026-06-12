@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "sourceMap": true,
+    "types": ["node"]
+  },
+  "include": [
+    "src/errors.ts",
+    "src/index.ts",
+    "src/resume-ci.ts",
+    "src/schema.ts",
+    "src/utils.ts"
+  ]
+}

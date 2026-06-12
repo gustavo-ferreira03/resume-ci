@@ -1,12 +1,56 @@
 {
   "name": "resume-ci",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "description": "Programmatic resume generator powered by YAML, Typst, and JSON Resume-compatible data.",
+  "license": "MIT",
+  "homepage": "https://github.com/gustavo-ferreira03/resume-ci#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gustavo-ferreira03/resume-ci.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gustavo-ferreira03/resume-ci/issues"
+  },
+  "keywords": [
+    "resume",
+    "cv",
+    "typst",
+    "json-resume",
+    "pdf"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "resume-ci": "dist/resume-ci.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema.json": "./schema.json"
+  },
+  "files": [
+    "dist",
+    "schema.json",
+    "templates"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "prepack": "mkdir -p templates && cp ../templates/default.typ templates/default.typ && bun run build",
+    "test": "bun test"
+  },
   "dependencies": {
     "yaml": "^2.7.0",
     "zod": "^4.4.3"
   },
-  "type": "module",
   "devDependencies": {
-    "@types/bun": "^1.3.14"
+    "@types/bun": "^1.3.14",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
   }
 }

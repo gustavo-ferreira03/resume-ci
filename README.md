@@ -11,7 +11,7 @@
 [![Bun](https://img.shields.io/badge/Bun-black?style=flat-square&logo=bun&logoColor=white)](https://bun.sh)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
-[Features](#features) | [Getting Started](#getting-started) | [Usage](#usage) | [Resume Format](#resume-format) | [Templates](#templates) | [Automation](#automation)
+[Features](#features) | [Getting Started](#getting-started) | [Usage](#usage) | [Programmatic API](#programmatic-api) | [Resume Format](#resume-format) | [Templates](#templates) | [Automation](#automation)
 
 </div>
 
@@ -58,8 +58,9 @@ flowchart LR
 - [Git](https://git-scm.com/downloads)
 - `bash`, `curl`, `jq`, `tar`, and `unzip` on macOS/Linux
 - PowerShell on Windows
+- `typst` available on `PATH`
 
-`make setup` installs Bun dependencies and downloads local copies of Typst and Font Awesome into `lib/bin/`.
+`make setup` installs Bun dependencies, ensures `typst` is available globally, and downloads Font Awesome into `lib/bin/fonts`.
 
 Install the system packages first if needed:
 
@@ -124,6 +125,62 @@ bun .\lib\src\resume-ci.ts resumes\resume-en.yml
 | `make schema` | Regenerate `lib/schema.json` from `lib/src/schema.ts` |
 | `make sync` | Pull upstream tooling and template updates into your fork |
 | `bun lib/src/resume-ci.ts --output-dir dist` | Build to a custom output directory |
+
+## Programmatic API
+
+`resume-ci` can also be used as a Bun-first SDK from another application. The published package exposes `parseResume` for validation/normalization and `generateResume` for PDF rendering.
+
+Install it in your application:
+
+```bash
+bun add resume-ci
+# or
+npm install resume-ci
+```
+
+Make sure `typst` is installed globally and available on `PATH` before generating PDFs.
+
+```ts
+import { generateResume, parseResume, ResumeValidationError } from "resume-ci"
+
+try {
+  const resume = parseResume({
+    meta: {
+      output_filename: "resume_jane_doe",
+    },
+    basics: {
+      name: "Jane Doe",
+      label: "Software Engineer",
+      email: "jane@example.invalid",
+    },
+    work: [],
+  })
+
+  const result = await generateResume(resume, {
+    outputPath: "dist/resume_jane_doe.pdf",
+  })
+
+  console.log(result.filename)
+  console.log(result.pdf) // Buffer
+} catch (err) {
+  if (err instanceof ResumeValidationError) console.error(err.issues)
+  else throw err
+}
+```
+
+You can also generate from YAML or a YAML file:
+
+```ts
+await generateResume("resumes/resume-en.yml", {
+  inputFormat: "file",
+  outputPath: "dist/resume.pdf",
+})
+```
+
+Useful `generateResume` options include `template`, `templatePath`, `templatesDir`, `typstPath`, `fontDir`, `outputPath`, and `keepTempFiles`.
+
+> [!NOTE]
+> The SDK does not download Typst automatically. It uses `typstPath` when provided, then falls back to `typst` on `PATH`.
 
 ## Resume Format
 
@@ -266,6 +323,20 @@ make sync
 
 `make sync` requires a clean working tree. If Git reports conflicts, resolve them and continue with `git merge --continue`.
 
+### npm Package Publishing
+
+The `Publish npm Package` workflow publishes the SDK from `lib/`. It runs tests, verifies the npm tarball with `npm pack --dry-run`, then runs `npm publish --access public --provenance`.
+
+Set a repository secret named `NPM_TOKEN` before using it. The token must be allowed to publish packages; if your npm account enforces 2FA, use a granular automation token with publish permission.
+
+You can publish in either of these ways:
+
+- Run the workflow manually from the GitHub Actions tab.
+- Publish a GitHub Release whose tag starts with `npm-v`, for example `npm-v0.1.0`.
+
+> [!NOTE]
+> Regular resume PDF releases use tags like `build-<run_number>` and do not trigger npm publishing.
+
 ## AI Agent Guidance
 
 This repository includes [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLAUDE.md) so AI agents know how to edit resume content safely.
@@ -282,7 +353,7 @@ The guidance emphasizes:
 
 | Problem | Fix |
 | --- | --- |
-| `typst not found. Run make setup` | Run `make setup` or `./lib/setup.ps1` on Windows |
+| `typst not found. Install typst globally or pass typstPath` | Run `make setup`, install Typst globally, or pass `typstPath` to the SDK |
 | Missing Font Awesome icons | Delete `lib/bin/fonts` and rerun setup |
 | YAML validation error | Check the reported field path and compare with `resumes/*.example.yml` |
 | Template not found | Confirm `meta.template` matches a file in `templates/` without `.typ` |

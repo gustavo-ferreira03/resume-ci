@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "types": ["bun-types"],
+    "types": ["bun-types", "node"],
     "typeRoots": ["./node_modules/@types", "./node_modules"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
     "strict": true,
-    "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"]
 }
