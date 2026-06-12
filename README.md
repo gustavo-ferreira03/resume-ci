@@ -31,26 +31,6 @@ It is built for developers who want their resume to be versioned, reviewable, ea
 - **Automated releases** that attach generated PDFs to a GitHub Release on every relevant push to `main`.
 - **AI-agent friendly guidance** in `AGENTS.md` and `CLAUDE.md` for STAR-based resume bullets and evidence standards.
 
-## How It Works
-
-```mermaid
-flowchart LR
-  A[resumes/*.yml] --> B[Zod schema]
-  B --> C[Bun builder]
-  C --> D[Typst template]
-  D --> E[build/*.pdf]
-  E --> F[GitHub Release]
-```
-
-| Part | Purpose |
-| --- | --- |
-| `resumes/*.yml` | One YAML file per resume or language variant |
-| `lib/src/schema.ts` | Source schema and data transformation logic |
-| `lib/schema.json` | Generated JSON Schema for editor validation and autocomplete |
-| `templates/*.typ` | Typst resume templates |
-| `build/*.pdf` | Generated PDFs, ignored by Git |
-| `.github/workflows/build.yml` | CI workflow that builds and publishes PDFs |
-
 ## Getting Started
 
 ### Prerequisites
