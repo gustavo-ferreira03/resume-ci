@@ -1,0 +1,52 @@
+name: Publish GitHub Package
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'github-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: "@gustavo-ferreira03"
+
+      - name: Setup
+        shell: bash
+        run: make setup
+
+      - name: Test SDK
+        working-directory: lib
+        run: bun test
+
+      - name: Prepare GitHub package metadata
+        working-directory: lib
+        run: |
+          npm pkg set name=@gustavo-ferreira03/resume-ci
+          npm pkg delete publishConfig.access
+          npm pkg set publishConfig.registry=https://npm.pkg.github.com
+
+      - name: Verify package
+        working-directory: lib
+        run: npm pack --dry-run
+
+      - name: Publish package
+        working-directory: lib
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+        run: npm publish

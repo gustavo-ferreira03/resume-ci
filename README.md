@@ -305,9 +305,9 @@ make sync
 
 ### npm Package Publishing
 
-The `Publish npm Package` workflow publishes the SDK from `lib/`. It runs tests, verifies the npm tarball with `npm pack --dry-run`, then runs `npm publish --access public --provenance`.
+The `Publish npm Package` workflow publishes the SDK from `lib/` to the public npm registry as `resume-ci`. It uses npm Trusted Publishing, runs tests, verifies the npm tarball with `npm pack --dry-run`, then runs `npm publish --access public --provenance`.
 
-Set a repository secret named `NPM_TOKEN` before using it. The token must be allowed to publish packages; if your npm account enforces 2FA, use a granular automation token with publish permission.
+Set the repository as a trusted publisher for `resume-ci` in npm before using this workflow. No `NPM_TOKEN` secret is required.
 
 You can publish in either of these ways:
 
@@ -316,6 +316,21 @@ You can publish in either of these ways:
 
 > [!NOTE]
 > Regular resume PDF releases use tags like `build-<run_number>` and do not trigger npm publishing.
+
+### GitHub Packages Publishing
+
+The `Publish GitHub Package` workflow publishes the same SDK to GitHub Packages as `@gustavo-ferreira03/resume-ci`. GitHub Packages requires scoped npm package names, so the workflow changes the package name only inside CI before publishing to `https://npm.pkg.github.com`.
+
+You can publish in either of these ways:
+
+- Run the workflow manually from the GitHub Actions tab.
+- Publish a GitHub Release whose tag starts with `github-v`, for example `github-v0.1.3`.
+
+Install from GitHub Packages with an authenticated npm client:
+
+```bash
+npm install @gustavo-ferreira03/resume-ci --registry=https://npm.pkg.github.com
+```
 
 ## AI Agent Guidance
 
