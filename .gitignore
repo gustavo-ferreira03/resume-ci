@@ -1,5 +1,6 @@
 build/
 lib/dist/
+lib/fonts/
 lib/README.md
 lib/templates/
 *.pdf

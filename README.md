@@ -160,7 +160,7 @@ await generateResume("resumes/resume-en.yml", {
 Useful `generateResume` options include `template`, `templatePath`, `templatesDir`, `typstPath`, `fontDir`, `outputPath`, and `keepTempFiles`.
 
 > [!NOTE]
-> The SDK does not download Typst automatically. It uses `typstPath` when provided, then falls back to `typst` on `PATH`.
+> The SDK does not download Typst automatically. It uses `typstPath` when provided, then falls back to `typst` on `PATH`. The npm package includes the Font Awesome fonts required by the default template, and `fontDir` can override them.
 
 ## Resume Format
 

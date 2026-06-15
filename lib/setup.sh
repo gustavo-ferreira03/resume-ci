@@ -39,7 +39,7 @@ if ! command -v typst >/dev/null 2>&1; then
   fi
 fi
 
-if [ ! -d "bin/fonts" ]; then
+if ! ls "bin/fonts"/*.{otf,ttf,ttc} >/dev/null 2>&1; then
   mkdir -p "bin/fonts"
   curl -fsSL "$(asset FortAwesome/Font-Awesome '-desktop\.zip$')" -o "$tmp/fa.zip"
   unzip -j "$tmp/fa.zip" '*.otf' -d "bin/fonts"

@@ -69,7 +69,6 @@ test("generateResume returns a PDF buffer and writes optional outputPath", async
 
 test("generateResume returns a PDF buffer without outputPath", async () => {
   const result = await generateResume(minimalResume, {
-    fontDir: join(LIB_ROOT, "bin", "fonts"),
     templatesDir: join(ROOT, "templates"),
   })
 
@@ -77,4 +76,34 @@ test("generateResume returns a PDF buffer without outputPath", async () => {
   expect(result.outputPath).toBeUndefined()
   expect(result.pdf.subarray(0, 4).toString()).toBe("%PDF")
   expect(result.pdf.length).toBeGreaterThan(1000)
+})
+
+test("generateResume preserves default font assets", async () => {
+  const withDefaultFonts = await generateResume(minimalResume, {
+    templatesDir: join(ROOT, "templates"),
+  })
+  const withExplicitFonts = await generateResume(minimalResume, {
+    fontDir: join(LIB_ROOT, "bin", "fonts"),
+    templatesDir: join(ROOT, "templates"),
+  })
+
+  expect(withDefaultFonts.pdf.length).toBe(withExplicitFonts.pdf.length)
+  expect(withDefaultFonts.pdf.subarray(0, 4).toString()).toBe("%PDF")
+  expect(withExplicitFonts.pdf.subarray(0, 4).toString()).toBe("%PDF")
+})
+
+test("example resumes match reference PDF sizes when build artifacts exist", async () => {
+  const examples = [
+    ["resume-en.example.yml", "resume_john_doe_en.pdf"],
+    ["resume-ptbr.example.yml", "curriculo_john_doe_ptbr.pdf"],
+    ["resume-es.example.yml", "curriculum_john_doe_es.pdf"],
+  ] as const
+
+  for (const [resumeFile, pdfFile] of examples) {
+    const reference = join(ROOT, "build", pdfFile)
+    try { await stat(reference) } catch { return }
+
+    const result = await generateResume(join(ROOT, "resumes", resumeFile), { inputFormat: "file" })
+    expect(result.pdf.length).toBe((await stat(reference)).size)
+  }
 })

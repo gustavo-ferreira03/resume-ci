@@ -1,6 +1,6 @@
 {
   "name": "resume-ci",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Programmatic resume generator powered by YAML, Typst, and JSON Resume-compatible data.",
   "license": "MIT",
   "homepage": "https://github.com/gustavo-ferreira03/resume-ci#readme",
@@ -33,6 +33,7 @@
   },
   "files": [
     "dist",
+    "fonts",
     "schema.json",
     "templates"
   ],
@@ -41,8 +42,8 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
-    "prepack": "cp ../README.md README.md && mkdir -p templates && cp ../templates/default.typ templates/default.typ && bun run build",
-    "postpack": "rm -f README.md",
+    "prepack": "cp ../README.md README.md && rm -rf fonts && mkdir -p templates fonts && cp ../templates/default.typ templates/default.typ && cp bin/fonts/* fonts/ && bun run build",
+    "postpack": "rm -rf README.md fonts",
     "test": "bun test"
   },
   "dependencies": {

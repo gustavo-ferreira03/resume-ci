@@ -25,7 +25,7 @@ if (-not (Get-Command typst -ErrorAction SilentlyContinue)) {
     }
 }
 
-if (-not (Test-Path (Join-Path $bin "fonts"))) {
+if (-not (Test-Path (Join-Path $bin "fonts")) -or -not (Get-ChildItem (Join-Path $bin "fonts") -Include *.otf,*.ttf,*.ttc -File -ErrorAction SilentlyContinue)) {
     $asset = (Invoke-RestMethod https://api.github.com/repos/FortAwesome/Font-Awesome/releases/latest).assets | Where-Object name -like '*-desktop.zip' | Select-Object -First 1
     Invoke-WebRequest $asset.browser_download_url -OutFile "$tmp\fa.zip"
     Expand-Archive "$tmp\fa.zip" -DestinationPath "$tmp\fa" -Force

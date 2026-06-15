@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process"
 import { constants } from "node:fs"
-import { access, mkdir, mkdtemp, readFile, rm, stat } from "node:fs/promises"
+import { access, mkdir, mkdtemp, readFile, readdir, rm, stat } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { basename, dirname, extname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -72,7 +72,7 @@ export async function generateResume(
   const templateName = options.template ?? context.meta.template
   const templatePath = await resolveTemplatePath(templateName, options)
   const typstPath = await resolveTypstPath(options.typstPath, options.cwd)
-  const fontDir = await optionalExistingPath(options.fontDir ?? join(PACKAGE_ROOT, "bin", "fonts"))
+  const fontDir = await resolveFontDir(options.fontDir, options.cwd)
   const cwd = resolve(options.cwd ?? process.cwd())
   const outputPath = options.outputPath ? resolve(options.cwd ?? process.cwd(), options.outputPath) : undefined
   const tempDir = outputPath ? undefined : await createTempDir(cwd)
@@ -177,8 +177,27 @@ function pathCandidates(binary: string): string[] {
     .map(dir => join(dir, binary))
 }
 
-async function optionalExistingPath(path: string): Promise<string | undefined> {
-  return await exists(path) ? path : undefined
+async function resolveFontDir(explicit?: string, cwd = process.cwd()): Promise<string | undefined> {
+  const candidates = [
+    ...(explicit ? [resolve(cwd, explicit)] : []),
+    join(PACKAGE_ROOT, "fonts"),
+    join(PACKAGE_ROOT, "bin", "fonts"),
+  ]
+
+  for (const candidate of candidates) {
+    if (await hasFontFiles(candidate)) return candidate
+  }
+
+  return undefined
+}
+
+async function hasFontFiles(path: string): Promise<boolean> {
+  try {
+    const files = await readdir(path)
+    return files.some(file => /\.(otf|ttf|ttc)$/i.test(file))
+  } catch {
+    return false
+  }
 }
 
 async function createTempDir(cwd: string): Promise<string> {
