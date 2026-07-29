@@ -174,11 +174,11 @@ meta:
   font: New Computer Modern
   output_filename: resume_john_doe_en
   locale: en
-  section_titles:
-    summary: Professional Summary
+  sections:
     work: Experience
-    projects: Projects
+    summary:
     education: Education
+    projects:
     skills: Technical Skills
 
 basics:
@@ -235,8 +235,10 @@ Extra JSON Resume fields are accepted by the schema, but the default Typst templ
 | `meta.output_filename` | Derived from `basics.name` | PDF filename without `.pdf`; use only letters, digits, `_`, and `-` |
 | `meta.locale` | `en` | BCP 47 locale for date formatting |
 | `meta.present_label` | Derived from locale | Override for open-ended roles |
-| `meta.section_titles` | Built-in English labels | Custom section titles, useful for translations |
+| `meta.sections` | Built-in order and English labels | Custom section order and titles |
 | `meta.canonical`, `meta.version`, `meta.lastModified` | None | Standard JSON Resume metadata |
+
+`meta.sections` controls both section order and titles. Each key must be a JSON Resume section name (`summary`, `work`, `volunteer`, `projects`, `awards`, `certificates`, `publications`, `education`, `skills`, `languages`, `interests`, `references`) — any other key fails validation. The order the keys appear in the map is the render order. A key's value is either a custom title string, or left blank (`work:`, which parses as `null`) to keep the built-in title while still controlling where the section falls. Sections not listed in `meta.sections` render after all listed sections, in the built-in default order, with their built-in titles. An absent or empty `meta.sections` renders every section in the built-in default order with built-in titles, same as before this field existed.
 
 Dates must use `YYYY`, `YYYY-MM`, or `YYYY-MM-DD`. Omit `endDate` for current roles.
 
@@ -279,7 +281,7 @@ meta:
   template: default
 ```
 
-To create a new template, add `templates/<name>.typ` and set `meta.template` to `<name>`. The builder passes the validated resume data to Typst as the `data` input.
+To create a new template, add `templates/<name>.typ` and set `meta.template` to `<name>`. The builder passes the validated resume data to Typst as the `data` input. `data.meta.section_order` is the fully resolved, ordered list of `{key, title}` pairs (built from `meta.sections`, with defaults applied and missing sections appended) — a custom template should loop over it rather than re-implementing the listed/default merge itself.
 
 The default template uses Font Awesome icons for common contact methods and profile links. `make setup` downloads the required fonts to `lib/bin/fonts`.
 

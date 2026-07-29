@@ -22,72 +22,37 @@
           "type": "string",
           "pattern": "^[A-Za-z0-9_-]+$"
         },
-        "section_titles": {
+        "sections": {
           "default": {},
           "type": "object",
-          "properties": {
-            "summary": {
-              "default": "Professional Summary",
-              "type": "string",
-              "minLength": 1
-            },
-            "work": {
-              "default": "Experience",
-              "type": "string",
-              "minLength": 1
-            },
-            "volunteer": {
-              "default": "Volunteer",
-              "type": "string",
-              "minLength": 1
-            },
-            "projects": {
-              "default": "Projects",
-              "type": "string",
-              "minLength": 1
-            },
-            "awards": {
-              "default": "Awards",
-              "type": "string",
-              "minLength": 1
-            },
-            "certificates": {
-              "default": "Certifications",
-              "type": "string",
-              "minLength": 1
-            },
-            "publications": {
-              "default": "Publications",
-              "type": "string",
-              "minLength": 1
-            },
-            "education": {
-              "default": "Education",
-              "type": "string",
-              "minLength": 1
-            },
-            "skills": {
-              "default": "Technical Skills",
-              "type": "string",
-              "minLength": 1
-            },
-            "languages": {
-              "default": "Languages",
-              "type": "string",
-              "minLength": 1
-            },
-            "interests": {
-              "default": "Interests",
-              "type": "string",
-              "minLength": 1
-            },
-            "references": {
-              "default": "References",
-              "type": "string",
-              "minLength": 1
-            }
+          "propertyNames": {
+            "type": "string",
+            "enum": [
+              "summary",
+              "work",
+              "volunteer",
+              "projects",
+              "awards",
+              "certificates",
+              "publications",
+              "education",
+              "skills",
+              "languages",
+              "interests",
+              "references"
+            ]
           },
-          "additionalProperties": {}
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
         },
         "locale": {
           "default": "en",

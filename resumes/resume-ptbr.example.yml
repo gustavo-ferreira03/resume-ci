@@ -5,7 +5,7 @@ meta:
   font: New Computer Modern
   output_filename: curriculo_john_doe_ptbr
   locale: pt-BR
-  section_titles:
+  sections:
     summary: Resumo Profissional
     work: Experiência Profissional
     volunteer: Voluntariado

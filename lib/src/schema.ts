@@ -20,26 +20,39 @@ const location = z.looseObject({
   region: z.string().optional(),
 })
 
-const sectionTitles = z.looseObject({
-  summary: z.string().min(1).default("Professional Summary"),
-  work: z.string().min(1).default("Experience"),
-  volunteer: z.string().min(1).default("Volunteer"),
-  projects: z.string().min(1).default("Projects"),
-  awards: z.string().min(1).default("Awards"),
-  certificates: z.string().min(1).default("Certifications"),
-  publications: z.string().min(1).default("Publications"),
-  education: z.string().min(1).default("Education"),
-  skills: z.string().min(1).default("Technical Skills"),
-  languages: z.string().min(1).default("Languages"),
-  interests: z.string().min(1).default("Interests"),
-  references: z.string().min(1).default("References"),
-}).prefault({})
+const sectionKey = z.enum([
+  "summary", "work", "volunteer", "projects", "awards", "certificates",
+  "publications", "education", "skills", "languages", "interests", "references",
+])
+type SectionKey = z.infer<typeof sectionKey>
+
+const DEFAULT_SECTION_ORDER: SectionKey[] = [
+  "summary", "work", "volunteer", "projects", "awards", "certificates",
+  "publications", "education", "skills", "languages", "interests", "references",
+]
+
+const DEFAULT_SECTION_TITLES: Record<SectionKey, string> = {
+  summary: "Professional Summary",
+  work: "Experience",
+  volunteer: "Volunteer",
+  projects: "Projects",
+  awards: "Awards",
+  certificates: "Certifications",
+  publications: "Publications",
+  education: "Education",
+  skills: "Technical Skills",
+  languages: "Languages",
+  interests: "Interests",
+  references: "References",
+}
+
+const sections = z.partialRecord(sectionKey, z.string().min(1).nullable()).prefault({})
 
 const meta = z.looseObject({
   template: z.string().default("default"),
   font: z.string().trim().min(1).default("New Computer Modern"),
   output_filename: z.string().regex(/^[A-Za-z0-9_-]+$/).optional(),
-  section_titles: sectionTitles,
+  sections,
   locale: z.string().default("en"),
   present_label: z.string().optional(),
   canonical: z.url().optional(),
@@ -353,28 +366,19 @@ export const resumeSchema = resumeInputSchema.transform(data => {
   const languages = data.languages.map(toLanguage)
   const interests = data.interests.map(toInterest)
   const references = data.references.map(toReference)
-  const titles = data.meta.section_titles
+
+  const listedKeys = Object.keys(data.meta.sections) as SectionKey[]
+  const remainingKeys = DEFAULT_SECTION_ORDER.filter(key => !listedKeys.includes(key))
+  const section_order = [...listedKeys, ...remainingKeys].map(key => {
+    const custom = data.meta.sections[key]
+    return { key, title: custom == null ? DEFAULT_SECTION_TITLES[key] : custom }
+  })
 
   return {
     meta: {
       ...data.meta,
       output_filename: filename,
-      section_titles: {
-        summary: titles.summary,
-        work: titles.work,
-        experience: titles.work,
-        volunteer: titles.volunteer,
-        projects: titles.projects,
-        awards: titles.awards,
-        certificates: titles.certificates,
-        certifications: titles.certificates,
-        publications: titles.publications,
-        education: titles.education,
-        skills: titles.skills,
-        languages: titles.languages,
-        interests: titles.interests,
-        references: titles.references,
-      },
+      section_order,
     },
     personal: { name: rich(b.name ?? ""), title: rich(b.label ?? ""), image: b.image ?? "" },
     contact,
