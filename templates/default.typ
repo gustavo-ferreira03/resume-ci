@@ -137,6 +137,39 @@
   v(4pt)
 }
 
+#let renderers = (
+  work: entry,
+  volunteer: entry,
+  projects: entry,
+  awards: entry,
+  certificates: entry,
+  publications: entry,
+  education: entry,
+  skills: tag-entry,
+  languages: tag-entry,
+  interests: tag-entry,
+  references: reference-entry,
+)
+
+#let render-section(key, title) = {
+  if key == "summary" {
+    if data.at("summary", default: ()).len() > 0 {
+      section(title)
+      rich(data.summary)
+      v(2pt)
+    }
+  } else {
+    let items = data.at(key, default: ())
+    if items.len() > 0 {
+      section(title)
+      let render = renderers.at(key, default: none)
+      if render != none {
+        for item in items { render(item) }
+      }
+    }
+  }
+}
+
 #let meta = data.at("meta", default: (:))
 #set page(width: 210mm, height: auto, margin: (left: 0.7cm, top: 0.5cm, right: 0.7cm, bottom: 0.5cm))
 #set text(font: meta.at("font", default: "New Computer Modern"), size: 10pt, fill: rgb("000000"))
@@ -144,7 +177,7 @@
 #show link: set text(fill: rgb("000000"))
 
 #let personal = data.at("personal", default: (:))
-#let titles = meta.at("section_titles", default: (:))
+#let section-order = meta.at("section_order", default: ())
 
 #align(center)[
   #text(size: 24pt, weight: "bold")[#rich(personal.at("name", default: ()))] \
@@ -156,65 +189,8 @@
 
 #v(10pt)
 
-#if data.at("summary", default: ()).len() > 0 [
-  #section(titles.at("summary", default: "Professional Summary"))
-  #rich(data.summary)
-  #v(2pt)
-]
-
-#if data.at("work", default: ()).len() > 0 [
-  #section(titles.at("work", default: titles.at("experience", default: "Experience")))
-  #for item in data.work { entry(item) }
-]
-
-#if data.at("volunteer", default: ()).len() > 0 [
-  #section(titles.at("volunteer", default: "Volunteer"))
-  #for item in data.volunteer { entry(item) }
-]
-
-#if data.at("projects", default: ()).len() > 0 [
-  #section(titles.at("projects", default: "Projects"))
-  #for item in data.projects { entry(item) }
-]
-
-#if data.at("awards", default: ()).len() > 0 [
-  #section(titles.at("awards", default: "Awards"))
-  #for item in data.awards { entry(item) }
-]
-
-#if data.at("certificates", default: ()).len() > 0 [
-  #section(titles.at("certificates", default: titles.at("certifications", default: "Certifications")))
-  #for item in data.certificates { entry(item) }
-]
-
-#if data.at("publications", default: ()).len() > 0 [
-  #section(titles.at("publications", default: "Publications"))
-  #for item in data.publications { entry(item) }
-]
-
-#if data.at("education", default: ()).len() > 0 [
-  #section(titles.at("education", default: "Education"))
-  #for item in data.education { entry(item) }
-]
-
-#if data.at("skills", default: ()).len() > 0 [
-  #section(titles.at("skills", default: "Technical Skills"))
-  #for item in data.skills { tag-entry(item) }
-]
-
-#if data.at("languages", default: ()).len() > 0 [
-  #section(titles.at("languages", default: "Languages"))
-  #for item in data.languages { tag-entry(item) }
-]
-
-#if data.at("interests", default: ()).len() > 0 [
-  #section(titles.at("interests", default: "Interests"))
-  #for item in data.interests { tag-entry(item) }
-]
-
-#if data.at("references", default: ()).len() > 0 [
-  #section(titles.at("references", default: "References"))
-  #for item in data.references { reference-entry(item) }
+#for sec in section-order [
+  #render-section(sec.at("key", default: ""), sec.at("title", default: ""))
 ]
 
 #context {

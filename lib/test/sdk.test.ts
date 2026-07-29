@@ -45,6 +45,37 @@ test("parseResume throws typed validation errors", () => {
   expect(() => parseResume({ basics: { email: "invalid" } })).toThrow(ResumeValidationError)
 })
 
+test("parseResume defaults section_order when meta is absent", () => {
+  const resume = parseResume({ basics: { name: "No Meta" }, work: [] })
+
+  expect(resume.meta.section_order.map(s => s.key)).toEqual([
+    "summary", "work", "volunteer", "projects", "awards", "certificates",
+    "publications", "education", "skills", "languages", "interests", "references",
+  ])
+  expect(resume.meta.section_order[0]).toEqual({ key: "summary", title: "Professional Summary" })
+})
+
+test("parseResume orders sections from YAML key order, with null keeping the default title", () => {
+  const resume = parseResume(`
+meta:
+  sections:
+    education: Studies
+    summary:
+work: []
+`, { inputFormat: "yaml" })
+
+  expect(resume.meta.section_order.map(s => s.key)).toEqual([
+    "education", "summary", "work", "volunteer", "projects", "awards",
+    "certificates", "publications", "skills", "languages", "interests", "references",
+  ])
+  expect(resume.meta.section_order[0]).toEqual({ key: "education", title: "Studies" })
+  expect(resume.meta.section_order[1]).toEqual({ key: "summary", title: "Professional Summary" })
+})
+
+test("parseResume rejects unknown meta.sections keys", () => {
+  expect(() => parseResume({ meta: { sections: { bogus: "x" } } })).toThrow(ResumeValidationError)
+})
+
 test("generateResume returns a PDF buffer and writes optional outputPath", async () => {
   const dir = await mkdtemp(join(LIB_ROOT, ".resume-ci-test-"))
   const outputPath = join(dir, "sdk-test.pdf")

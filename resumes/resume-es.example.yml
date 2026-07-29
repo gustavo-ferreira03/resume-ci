@@ -5,7 +5,7 @@ meta:
   font: New Computer Modern
   output_filename: curriculum_john_doe_es
   locale: es
-  section_titles:
+  sections:
     summary: Perfil Profesional
     work: Experiencia Profesional
     volunteer: Voluntariado

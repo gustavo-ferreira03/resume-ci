@@ -1,6 +1,6 @@
 {
   "name": "resume-ci",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "Programmatic resume generator powered by YAML, Typst, and JSON Resume-compatible data.",
   "license": "MIT",
   "homepage": "https://github.com/gustavo-ferreira03/resume-ci#readme",

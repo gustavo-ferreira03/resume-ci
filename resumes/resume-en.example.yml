@@ -5,7 +5,7 @@ meta:
   font: New Computer Modern
   output_filename: resume_john_doe_en
   locale: en
-  section_titles:
+  sections:
     summary: Professional Summary
     work: Experience
     volunteer: Volunteer Work
